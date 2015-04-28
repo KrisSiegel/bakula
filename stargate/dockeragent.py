@@ -21,16 +21,19 @@ class DockerAgent(object):
                     dockerfile='Dockerfile'):
         build_generator = self._docker_client.build(path=path, tag=image_name)
     
-    def start_container(self, image_name, should_update_index=True):
+    def start_container(self, image_name, should_update_index=True, ports=None):
         container_name = self._create_container_name(image_name)
+        print image_name
         container = self._docker_client.create_container(image=image_name,
                                                          name=container_name)
-        res = self._docker_client.start(container['Id'])
+        container_id = container['Id']
+        res = self._docker_client.start(container['Id'], port_bindings=ports)
         print res
         self._add_name_to_name_dict(image_name, container_name)
         if should_update_index:
             # Make sure our dictionary is fresh
             self._update_container_indexes()
+        return container_id
     
     def stop_container(self, container_name, should_update_index=True):
         container_id = self._containers[container_name]
@@ -48,7 +51,9 @@ class DockerAgent(object):
 
         if should_update_index:
             self._update_container_indexes()
-        
+       
+    def get_port_info_for_container(self, container_id, port):
+        return self._docker_client.port(container_id, port)
     
     def _update_container_indexes(self):
         self._name_dict = {}
