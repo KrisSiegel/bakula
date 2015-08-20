@@ -1,42 +1,42 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
-    <meta charset='utf-8'>
+    <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+    <title>Bakula by immuta</title>
 
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-
-    <title>Stargate by immuta</title>
   </head>
-
   <body>
-    <header>
-      <div class="inner">
-        <h1>Stargate</h1>
-        <h2> Stargate makes scalable reactive programming as simple as plug and play.</h2>
-        <a href="https://github.com/immuta/stargate" class="button"><small>View project on</small> GitHub</a>
-      </div>
-    </header>
+    <div class="wrapper">
+      <header>
+        <h1>Bakula</h1>
+        <p>Bakula makes scalable reactive programming as simple as plug and play.</p>
 
-    <div id="content-wrapper">
-      <div class="inner clearfix">
-        <section id="main-content">
-          <h3>
-<a id="stargate" class="anchor" href="#stargate" aria-hidden="true"><span class="octicon octicon-link"></span></a>Stargate</h3>
+        <p class="view"><a href="https://github.com/immuta/bakula">View the Project on GitHub <small>immuta/bakula</small></a></p>
 
-<p>Convert data state changes to actions across your enterprise. Reactive-data enables proactive Data Science. Stargate executes your code in response to real-time events occurring within your enterprise such as uploading of a file, inserting a new record in a database, crawling a website, etc. By managing code execution in an event-driven way, Stargate ensures your resources are efficiently provisioned for the workload of the moment. Stargate makes scalable reactive programming as simple as plug and play.</p>
+
+        <ul>
+          <li><a href="https://github.com/immuta/bakula/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/immuta/bakula/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/immuta/bakula">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h3>
+<a id="bakula" class="anchor" href="#bakula" aria-hidden="true"><span class="octicon octicon-link"></span></a>Bakula</h3>
+
+<p>Convert data state changes to actions across your enterprise. Reactive-data enables proactive Data Science. Bakula executes your code in response to real-time events occurring within your enterprise such as uploading of a file, inserting a new record in a database, crawling a website, etc. By managing code execution in an event-driven way, Bakula ensures your resources are efficiently provisioned for the workload of the moment. Bakula makes scalable reactive programming as simple as plug and play.</p>
 
 <h3>
 <a id="how-does-it-work" class="anchor" href="#how-does-it-work" aria-hidden="true"><span class="octicon octicon-link"></span></a>How does it work?</h3>
 
-<p>Stargate works off of a simple concept. Users write listeners for events in their enterprise. An example of this would be writing a piece of code which listens to a databases write ahead log. Developers can then write simple REST endpoint which listen for these events. These REST services are then packaged up as a docker container and pushed to the Stargate system. When the developer uploads the containers they register what events their container should be started up for. The listeners then will send out "events" from their live stream to the Stargate server instance. These events are currently modeled as JSON from there the Stargate system will then see what containers are running or not running and kick off a new container as it sees fit. It will also take care of scaling down the containers as well based off the number of events it is receiving.</p>
+<p>Bakula works off of a simple concept. Users write listeners for events in their enterprise. An example of this would be writing a piece of code which listens to a databases write ahead log. Developers can then write simple REST endpoint which listen for these events. These REST services are then packaged up as a docker container and pushed to the Bakula system. When the developer uploads the containers they register what events their container should be started up for. The listeners then will send out "events" from their live stream to the Bakula server instance. These events are currently modeled as JSON from there the Bakula system will then see what containers are running or not running and kick off a new container as it sees fit. It will also take care of scaling down the containers as well based off the number of events it is receiving.</p>
 
 <h3>
 <a id="how-do-i-play" class="anchor" href="#how-do-i-play" aria-hidden="true"><span class="octicon octicon-link"></span></a>How do I Play?</h3>
@@ -54,7 +54,7 @@
 <h4>
 <a id="upload-the-container" class="anchor" href="#upload-the-container" aria-hidden="true"><span class="octicon octicon-link"></span></a>Upload the container</h4>
 
-<p>Upload the container to Stargate</p>
+<p>Upload the container to Bakula</p>
 
 <h4>
 <a id="profit" class="anchor" href="#profit" aria-hidden="true"><span class="octicon octicon-link"></span></a>Profit</h4>
@@ -68,25 +68,13 @@
 <a id="support-or-contact" class="anchor" href="#support-or-contact" aria-hidden="true"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
 
 <p>Support and contact is available by emailing <a href="mailto:soup@immuta.com">soup@immuta.com</a></p>
-        </section>
-
-        <aside id="sidebar">
-          <a href="https://github.com/immuta/stargate/zipball/master" class="button">
-            <small>Download</small>
-            .zip file
-          </a>
-          <a href="https://github.com/immuta/stargate/tarball/master" class="button">
-            <small>Download</small>
-            .tar.gz file
-          </a>
-
-          <p class="repo-owner"><a href="https://github.com/immuta/stargate"></a> is maintained by <a href="https://github.com/immuta">immuta</a>.</p>
-
-          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
-        </aside>
-      </div>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/immuta">immuta</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
     </div>
-
-  
+    <script src="javascripts/scale.fix.js"></script>
+    
   </body>
 </html>
