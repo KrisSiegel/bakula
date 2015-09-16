@@ -1,4 +1,3 @@
-import dockeragent
 import time
 import json
 import requests
@@ -6,6 +5,8 @@ import os
 import tarfile
 import tempfile
 import zipfile
+
+from bakula.docker import dockeragent
 
 class EventHandler:
     def __init__(self):
@@ -32,7 +33,6 @@ class EventHandler:
         if key in self.events_to_images:
             value = self.events_to_images[key]
         value.append(image_name)
-	print key
         self.events_to_images[key] = value
 
     def send_event(self, event_json):
