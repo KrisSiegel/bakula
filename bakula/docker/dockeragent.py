@@ -20,8 +20,6 @@ class DockerAgent(object):
     def build_image(self, path, image_name,
                     dockerfile='Dockerfile'):
         build_generator = self._docker_client.build(path=path, tag=image_name)
-	for line in build_generator:
-		print line
 
     def check_if_image_exists(self, image_name):
         for image in self._docker_client.images():
