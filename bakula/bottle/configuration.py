@@ -38,7 +38,10 @@ def bootstrap_app_config(app):
     json_file = os.getenv('BAKULA_CFG_FILE', 'bakula_config.json')
 
     if not os.path.exists(json_file):
-        raise IOError("%s does not exist" % json_file)
+        msg = "Can not read configuration file %s using default configuration" \
+                % json_file
+        logger.warn(msg)
+        return
 
     if not isinstance(app, Bottle):
         raise ValueError("App is not an instance of Bottle!")
