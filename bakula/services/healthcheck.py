@@ -11,7 +11,11 @@
 # under the License.
 from bottle import Bottle, HTTPResponse
 
+from bakula.bottle import configuration
+
 app = Bottle()
+
+configuration.bootstrap_app_config(app)
 
 @app.get('/health')
 def get_health():
