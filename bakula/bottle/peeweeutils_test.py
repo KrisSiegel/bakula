@@ -40,6 +40,5 @@ class PeeweeutilsTest(unittest.TestCase):
         db = peeweeutils.get_db_from_config(config)
         self.assertEquals(type(db), SqliteDatabase)
 
-
 if __name__ == '__main__':
     unittest.main()

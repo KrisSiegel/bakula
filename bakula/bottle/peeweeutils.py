@@ -12,19 +12,20 @@
 
 from peewee import *
 
-def get_db_from_config(config):
+def get_db_from_config(config, proxy=None):
     '''This method will return a peewee db object from a config dictionary
 
     Currently we only support postgres and sqlite
     Args:
         config: the configuration dictionary
+        proxy: a peewee proxy which we can initialize
 
     Raises:
         RuntimeError if no config is given, if no databaseType is found,
         or if no database is found
 
     Returns:
-        A peewee database object
+        A peewee database object or none if we are initialize a proxy object
     '''
     if not config:
         raise RuntimeError('No configuration was given!')
@@ -51,7 +52,14 @@ def get_db_from_config(config):
         raise RuntimeError('No database string was sepcified!')
 
     # Create a new database based on our type
+    db = None
     if db_type == 'postgres':
-        return PostgresqlDatabase(database, **db_args)
+        db = PostgresqlDatabase(database, **db_args)
+    elif db_type == 'sqlite':
+        db = SqliteDatabase(database, **db_args)
 
-    return SqliteDatabase(database, **db_args)
+    if proxy:
+        proxy.initialize(db)
+        return
+
+    return db
