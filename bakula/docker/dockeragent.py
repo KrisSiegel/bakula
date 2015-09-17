@@ -7,6 +7,7 @@ import time
 
 class DockerAgent(object):
     CONTAINER_INBOX = '/inbox'
+    NAME_CHARS_TO_REPLACE = ['/', '-', ':']
 
     def __init__(self, docker_base_url='unix://var/run/docker.sock', tls_config=False):
         self._docker_client = docker.Client(base_url=docker_base_url, tls=tls_config)
@@ -110,9 +111,8 @@ class DockerAgent(object):
 
 
     def _normalize_image_name(self, image_name):
-        image_name = image_name.replace('/', '_')
-        image_name = image_name.replace('-', '_')
-        image_name = image_name.replace(':', '_')
+        for char in DockerAgent.NAME_CHARS_TO_REPLACE:
+            image_name = image_name.replace(char, '_')
         return image_name
 
     def _add_name_to_name_dict(self, image_name, name):
