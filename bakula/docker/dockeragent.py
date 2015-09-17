@@ -6,6 +6,8 @@ import sys
 import time
 
 class DockerAgent(object):
+    CONTAINER_INBOX = '/inbox'
+
     def __init__(self, docker_base_url='unix://var/run/docker.sock', tls_config=False):
         self._docker_client = docker.Client(base_url=docker_base_url, tls=tls_config)
         self._containers = {}
@@ -31,7 +33,7 @@ class DockerAgent(object):
         container_name = self._create_container_name(image_name)
 
         # Create inbox volume for container
-        container_volumes_str = host_inbox + ":/inbox:rw"
+        container_volumes_str = '%s:%s:rw' % (host_inbox, DockerAgent.CONTAINER_INBOX)
 
         host_config_obj = self._docker_client.create_host_config(
             privileged=run_privileged,
@@ -41,7 +43,7 @@ class DockerAgent(object):
         container = self._docker_client.create_container(image=image_name,
                                                          name=container_name,
                                                          host_config=host_config_obj,
-                                                         volumes=['/inbox'],
+                                                         volumes=[DockerAgent.CONTAINER_INBOX],
                                                          command=command)
         container_id = container['Id']
         res = self._docker_client.start(container['Id'])
