@@ -51,9 +51,8 @@ class Inboxer:
         destination = os.path.join(master_topic_path, str(counter))
         if not os.path.exists(destination):
             try:
-                fout = open(destination, "w")
-                fout.write(data)
-                fout.close()
+                with open(destination, "w") as fout:
+                    fout.write(data)
             except Exception as ex:
                 print "Writing to master inbox failed due to " + ex
                 return None
