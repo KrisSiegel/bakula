@@ -37,3 +37,13 @@ def create_registration():
         return create_error(status_code=400,
                             message='A registration for topic %s with container %s already exists' %
                             (registration_dict['topic'], registration_dict['container']))
+
+@app.delete('/registration/<registration_id>')
+def delete_registration(registration_id):
+    try:
+        registration = Registration.get(Registration.id == registration_id)
+        registration.delete_instance()
+        return {'id': registration_id}
+    except Registration.DoesNotExist:
+        return create_error(status_code=404,
+                            message='A registration with the ID %s does not exist' % (registration_id))

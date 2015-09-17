@@ -2,3 +2,4 @@ docker-py
 atomic
 bottle
 peewee
+webtest

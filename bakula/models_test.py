@@ -1,10 +1,7 @@
 import unittest
 import os
 from peewee import SqliteDatabase, Model, CharField
-
-# TODO: when we get to the point where we have a test runner, this should
-#       probably change to 'from bakula import models'
-import models
+from bakula import models
 
 TEST_DB_FILE = 'test.db'
 
