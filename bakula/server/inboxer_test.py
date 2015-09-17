@@ -1,6 +1,5 @@
 import unittest
 import os
-import uuid
 import shutil
 from inboxer import Inboxer
 
@@ -11,21 +10,6 @@ class InboxerTest(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(".tmp", ignore_errors=True)
-
-    def test_current_upper_bound(self):
-        path = os.path.join(".tmp", uuid.uuid1().hex)
-        os.makedirs(path)
-        testPath0 = os.path.join(path, "0")
-        testPath1 = os.path.join(path, "1")
-        testPath2 = os.path.join(path, "2")
-        with open(testPath0, "a"):
-            os.utime(testPath0, None)
-        with open(testPath1, "a"):
-            os.utime(testPath0, None)
-        with open(testPath2, "a"):
-            os.utime(testPath0, None)
-
-        self.assertEqual(2, Inboxer.current_upper_bound(path))
 
     def test_add_file_by_path(self):
         master_inbox_path = os.path.join(".tmp", "master_inbox")
@@ -39,10 +23,8 @@ class InboxerTest(unittest.TestCase):
         with open(testfile, "a"):
             os.utime(testfile, None)
 
-        master_inbox_destination = os.path.join(master_inbox_path, "MyTopic", "0")
-
-        self.assertEqual(os.path.exists(master_inbox_destination), False)
-        inboxer.add_file_by_path("MyTopic", testfile)
+        counter = inboxer.add_file_by_path("MyTopic", testfile)
+        master_inbox_destination = os.path.join(master_inbox_path, "MyTopic", str(counter))
         self.assertEqual(os.path.exists(testfile), False)
         self.assertEqual(os.path.exists(master_inbox_destination), True)
 
@@ -69,7 +51,7 @@ class InboxerTest(unittest.TestCase):
         inboxer.add_file_by_path("MyTopic", testfile1)
         inboxer.add_file_by_path("MyTopic", testfile2)
         inboxer.add_file_by_path("MyTopic", testfile3)
-
+        
         self.assertEqual(len(inboxer.get_inbox_list("MyTopic")), 3)
 
     def test_promote_to_container_inbox(self):
