@@ -49,14 +49,19 @@ class Inboxer:
     def promote_to_container_inbox(self, topic, containerids):
         promotees = self.get_inbox_list(topic)
         if len(promotees) > 0:
-            for containerid in containerids if not isinstance(containerids, basestring) else [containerids]:
-                container_inboxes_path = os.path.join(self.container_inboxes_path, containerid)
-                if not os.path.exists(container_inboxes_path):
-                    os.makedirs(container_inboxes_path)
+
+            # Since we allow a single, string or an array of strings for the containerids
+            # parameter, let's make a variable that's always an array for our loop
+            normalized_containerids = containerids if not isinstance(containerids, basestring) else [containerids]
+
+            for containerid in normalized_containerids:
+                container_inbox_path = os.path.join(self.container_inboxes_path, containerid)
+                if not os.path.exists(container_inbox_path):
+                    os.makedirs(container_inbox_path)
 
                 for fname in promotees:
                     fullpath = os.path.join(self.master_inbox_path, topic, fname)
-                    destination = os.path.join(container_inboxes_path, fname)
+                    destination = os.path.join(container_inbox_path, fname)
                     os.link(fullpath, destination)
 
             for fname in promotees:
