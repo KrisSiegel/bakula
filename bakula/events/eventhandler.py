@@ -39,12 +39,12 @@ class EventHandler:
         event_type = event_json['event_type']
         event_key = event_json['event_key']
         key = self._get_key(event_type, event_key)
-	print key
-	if not key in self.events_to_images:
-		return
+        print key
+        if not key in self.events_to_images:
+            return
         images = self.events_to_images[key]
         for image in images:
-       	    container_url = self.get_url_for_image(image)
+            container_url = self.get_url_for_image(image)
             # Start a container
             if not container_url:
                 container_url = self._start_container(image)
