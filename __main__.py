@@ -13,14 +13,15 @@ import argparse
 import sys
 
 from bottle import Bottle, run
-from bakula.services import healthcheck
+from bakula.services import healthcheck, registration
 
 app = Bottle()
 
 # To add a subapplication simply do the necessary imports and add the
 # application to the list below
 sub_apps = [
-    healthcheck.app
+    healthcheck.app,
+    registration.app
 ]
 
 
