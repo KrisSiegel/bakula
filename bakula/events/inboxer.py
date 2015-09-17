@@ -33,9 +33,8 @@ class Inboxer:
         if os.path.exists(file_path):
             try:
                 os.rename(file_path, destination)
-            except:
-                exception = sys.exc_info()[0]
-                print "Writing to master inbox failed due to " + exception
+            except Exception as ex:
+                print "Writing to master inbox failed due to " + ex
                 return None
 
         return counter
@@ -55,9 +54,8 @@ class Inboxer:
                 fout = open(destination, "w")
                 fout.write(data)
                 fout.close()
-            except:
-                exception = sys.exc_info()[0]
-                print "Writing to master inbox failed due to " + exception
+            except Exception as ex:
+                print "Writing to master inbox failed due to " + ex
                 return None
 
         return counter
@@ -92,9 +90,8 @@ class Inboxer:
                         fullpath = os.path.join(self.master_inbox_path, topic, fname)
                         destination = os.path.join(container_inbox_path, fname)
                         os.link(fullpath, destination)
-                    except:
-                        exception = sys.exc_info()[0]
-                        print "Generating hard links failed due to " + exception
+                    except Exception as ex:
+                        print "Generating hard links failed due to " + ex
                         return None
 
             for fname in promotees:
@@ -103,9 +100,8 @@ class Inboxer:
                     # Hard link created successfully; delete the original
                     try:
                         os.remove(fullpath);
-                    except:
-                        exception = sys.exc_info()[0]
-                        print "Deleting master inbox files after promotion failed due to " + exception
+                    except Exception as ex:
+                        print "Deleting master inbox files after promotion failed due to " + ex
                         return None
                 else:
                     print "Failure creating hard link on " + fullpath
