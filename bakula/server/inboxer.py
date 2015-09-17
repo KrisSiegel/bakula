@@ -31,7 +31,12 @@ class Inboxer:
         # Move into the master inbox under the correct topic with an updated count
         destination = os.path.join(master_topic_path, str(counter))
         if os.path.exists(file_path):
-            os.rename(file_path, destination)
+            try:
+                os.rename(file_path, destination)
+            except:
+                exception = sys.exc_info()[0]
+                print "Writing to master inbox failed due to " + exception
+                return None
 
         return counter
 
@@ -46,9 +51,14 @@ class Inboxer:
         # Move into the master inbox under the correct topic with an updated count
         destination = os.path.join(master_topic_path, str(counter))
         if not os.path.exists(destination):
-            fout = open(destination, "w")
-            fout.write(data)
-            fout.close()
+            try:
+                fout = open(destination, "w")
+                fout.write(data)
+                fout.close()
+            except:
+                exception = sys.exc_info()[0]
+                print "Writing to master inbox failed due to " + exception
+                return None
 
         return counter
 
@@ -78,14 +88,24 @@ class Inboxer:
                     os.makedirs(container_inbox_path)
 
                 for fname in promotees:
-                    fullpath = os.path.join(self.master_inbox_path, topic, fname)
-                    destination = os.path.join(container_inbox_path, fname)
-                    os.link(fullpath, destination)
+                    try:
+                        fullpath = os.path.join(self.master_inbox_path, topic, fname)
+                        destination = os.path.join(container_inbox_path, fname)
+                        os.link(fullpath, destination)
+                    except:
+                        exception = sys.exc_info()[0]
+                        print "Generating hard links failed due to " + exception
+                        return None
 
             for fname in promotees:
                 fullpath = os.path.join(self.master_inbox_path, topic, fname)
                 if os.stat(fullpath).st_nlink > 0:
                     # Hard link created successfully; delete the original
-                    os.remove(fullpath);
+                    try:
+                        os.remove(fullpath);
+                    except:
+                        exception = sys.exc_info()[0]
+                        print "Deleting master inbox files after promotion failed due to " + exception
+                        return None
                 else:
                     print "Failure creating hard link on " + fullpath
