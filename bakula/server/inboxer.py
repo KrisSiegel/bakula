@@ -19,15 +19,6 @@ class Inboxer:
         if not os.path.exists(self.container_inboxes_path):
             os.makedirs(self.container_inboxes_path)
 
-    # Private, static method to check if a string contains just a number or not
-    @staticmethod
-    def __is_number(str):
-        try:
-            int(str)
-            return True
-        except ValueError:
-            return False
-
     # Takes a topic and a path to a file on the file system and moved it into
     # the master inbox removing it from its original location
     def add_file_by_path(self, topic, file_path):
