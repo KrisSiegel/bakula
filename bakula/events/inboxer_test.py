@@ -28,6 +28,17 @@ class InboxerTest(unittest.TestCase):
         self.assertEqual(os.path.exists(testfile), False)
         self.assertEqual(os.path.exists(master_inbox_destination), True)
 
+    def test_add_file_by_bytes(self):
+        master_inbox_path = os.path.join(".tmp", "master_inbox")
+        container_inboxes_path = os.path.join(".tmp", "container_inboxes")
+
+        # Initialize inboxer using a tmp directory for unit testing
+        inboxer = Inboxer(master_inbox_path, container_inboxes_path)
+
+        counter = inboxer.add_file_by_bytes("MyTopic", "This is a test file weeee")
+        master_inbox_destination = os.path.join(master_inbox_path, "MyTopic", str(counter))
+        self.assertEqual(os.path.exists(master_inbox_destination), True)
+
     def test_get_inbox_list(self):
         master_inbox_path = os.path.join(".tmp", "master_inbox")
         container_inboxes_path = os.path.join(".tmp", "container_inboxes")
