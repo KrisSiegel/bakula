@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 def bootstrap_app_config(app):
     """Bootstraps the application configuration
 
-    Method will deserialzie a JSON file into a dictionary and will load that into
+    Method will deserialize a JSON file into a dictionary and will load that into
     Bottle's configuration object. It gets the JSON file's path by attempting to
     read the path from an environment varabile. If the environment variable
     isn't set then it will default to the file 'bakula_config.json' in the
