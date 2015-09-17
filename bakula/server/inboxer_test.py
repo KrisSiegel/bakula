@@ -12,7 +12,7 @@ class InboxerTest(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(".tmp", ignore_errors=True)
 
-    def test_currentUpperBound(self):
+    def test_current_upper_bound(self):
         path = os.path.join(".tmp", uuid.uuid1().hex)
         os.makedirs(path)
         testPath0 = os.path.join(path, "0")
@@ -25,82 +25,82 @@ class InboxerTest(unittest.TestCase):
         with open(testPath2, "a"):
             os.utime(testPath0, None)
 
-        self.assertEqual(2, Inboxer.currentUpperBound(path))
+        self.assertEqual(2, Inboxer.current_upper_bound(path))
 
-    def test_addFileByPath(self):
-        masterInboxPath = os.path.join(".tmp", "master_inbox")
-        containerInboxesPath = os.path.join(".tmp", "container_inboxes")
-        testFile = os.path.join(".tmp", "testFile.json")
+    def test_add_file_by_path(self):
+        master_inbox_path = os.path.join(".tmp", "master_inbox")
+        container_inboxes_path = os.path.join(".tmp", "container_inboxes")
+        testfile = os.path.join(".tmp", "testFile.json")
 
         # Initialize inboxer using a tmp directory for unit testing
-        inboxer = Inboxer(masterInboxPath, containerInboxesPath)
+        inboxer = Inboxer(master_inbox_path, container_inboxes_path)
 
         # Create our test file
-        with open(testFile, "a"):
-            os.utime(testFile, None)
+        with open(testfile, "a"):
+            os.utime(testfile, None)
 
-        masterInboxDestination = os.path.join(masterInboxPath, "MyTopic", "0")
+        master_inbox_destination = os.path.join(master_inbox_path, "MyTopic", "0")
 
-        self.assertEqual(os.path.exists(masterInboxDestination), False)
-        inboxer.addFileByPath("MyTopic", testFile)
-        self.assertEqual(os.path.exists(testFile), False)
-        self.assertEqual(os.path.exists(masterInboxDestination), True)
+        self.assertEqual(os.path.exists(master_inbox_destination), False)
+        inboxer.add_file_by_path("MyTopic", testfile)
+        self.assertEqual(os.path.exists(testfile), False)
+        self.assertEqual(os.path.exists(master_inbox_destination), True)
 
-    def test_getInboxList(self):
-        masterInboxPath = os.path.join(".tmp", "master_inbox")
-        containerInboxesPath = os.path.join(".tmp", "container_inboxes")
-        testFile1 = os.path.join(".tmp", "testFile1.json")
-        testFile2 = os.path.join(".tmp", "testFile2.json")
-        testFile3 = os.path.join(".tmp", "testFile3.json")
-
-        # Initialize inboxer using a tmp directory for unit testing
-        inboxer = Inboxer(masterInboxPath, containerInboxesPath)
-
-        # Create our test files
-        with open(testFile1, "a"):
-            os.utime(testFile1, None)
-
-        with open(testFile2, "a"):
-            os.utime(testFile2, None)
-
-        with open(testFile3, "a"):
-            os.utime(testFile3, None)
-
-        inboxer.addFileByPath("MyTopic", testFile1)
-        inboxer.addFileByPath("MyTopic", testFile2)
-        inboxer.addFileByPath("MyTopic", testFile3)
-
-        self.assertEqual(len(inboxer.getInboxList("MyTopic")), 3)
-
-    def test_promoteToContainerInbox(self):
-        masterInboxPath = os.path.join(".tmp", "master_inbox")
-        containerInboxesPath = os.path.join(".tmp", "container_inboxes")
-        testFile1 = os.path.join(".tmp", "testFile1.json")
-        testFile2 = os.path.join(".tmp", "testFile2.json")
-        testFile3 = os.path.join(".tmp", "testFile3.json")
+    def test_get_inbox_list(self):
+        master_inbox_path = os.path.join(".tmp", "master_inbox")
+        container_inboxes_path = os.path.join(".tmp", "container_inboxes")
+        testfile1 = os.path.join(".tmp", "testFile1.json")
+        testfile2 = os.path.join(".tmp", "testFile2.json")
+        testfile3 = os.path.join(".tmp", "testFile3.json")
 
         # Initialize inboxer using a tmp directory for unit testing
-        inboxer = Inboxer(masterInboxPath, containerInboxesPath)
+        inboxer = Inboxer(master_inbox_path, container_inboxes_path)
 
         # Create our test files
-        with open(testFile1, "a"):
-            os.utime(testFile1, None)
+        with open(testfile1, "a"):
+            os.utime(testfile1, None)
 
-        with open(testFile2, "a"):
-            os.utime(testFile2, None)
+        with open(testfile2, "a"):
+            os.utime(testfile2, None)
 
-        with open(testFile3, "a"):
-            os.utime(testFile3, None)
+        with open(testfile3, "a"):
+            os.utime(testfile3, None)
 
-        inboxer.addFileByPath("MyTopic", testFile1)
-        inboxer.addFileByPath("MyTopic", testFile2)
-        inboxer.addFileByPath("MyTopic", testFile3)
+        inboxer.add_file_by_path("MyTopic", testfile1)
+        inboxer.add_file_by_path("MyTopic", testfile2)
+        inboxer.add_file_by_path("MyTopic", testfile3)
 
-        self.assertEqual(len(inboxer.getInboxList("MyTopic")), 3)
+        self.assertEqual(len(inboxer.get_inbox_list("MyTopic")), 3)
 
-        inboxer.promoteToContainerInbox("MyTopic", "RandomContainerIDHere")
+    def test_promote_to_container_inbox(self):
+        master_inbox_path = os.path.join(".tmp", "master_inbox")
+        container_inboxes_path = os.path.join(".tmp", "container_inboxes")
+        testfile1 = os.path.join(".tmp", "testFile1.json")
+        testfile2 = os.path.join(".tmp", "testFile2.json")
+        testfile3 = os.path.join(".tmp", "testFile3.json")
 
-        self.assertEqual(len(inboxer.getInboxList("MyTopic")), 0)
+        # Initialize inboxer using a tmp directory for unit testing
+        inboxer = Inboxer(master_inbox_path, container_inboxes_path)
+
+        # Create our test files
+        with open(testfile1, "a"):
+            os.utime(testfile1, None)
+
+        with open(testfile2, "a"):
+            os.utime(testfile2, None)
+
+        with open(testfile3, "a"):
+            os.utime(testfile3, None)
+
+        inboxer.add_file_by_path("MyTopic", testfile1)
+        inboxer.add_file_by_path("MyTopic", testfile2)
+        inboxer.add_file_by_path("MyTopic", testfile3)
+
+        self.assertEqual(len(inboxer.get_inbox_list("MyTopic")), 3)
+
+        inboxer.promote_to_container_inbox("MyTopic", "RandomContainerIDHere")
+
+        self.assertEqual(len(inboxer.get_inbox_list("MyTopic")), 0)
 
 if __name__ == '__main__':
     unittest.main()
