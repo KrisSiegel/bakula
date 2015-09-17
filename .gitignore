@@ -210,3 +210,6 @@ Temporary Items
 .apdisk
 out
 
+# Bakula specifics
+.vagrant/
+ui/ext-lib
