@@ -34,6 +34,24 @@ class Inboxer:
             os.rename(file_path, destination)
 
         return counter
+
+    # Takes a topic and data and writes it to the master inbox
+    def add_file_by_bytes(self, topic, data):
+        master_topic_path = os.path.join(self.master_inbox_path, topic)
+        if not os.path.exists(master_topic_path):
+            os.makedirs(master_topic_path)
+        self.atomic_counter += 1
+        counter = self.atomic_counter.value
+
+        # Move into the master inbox under the correct topic with an updated count
+        destination = os.path.join(master_topic_path, str(counter))
+        if not os.path.exists(destination):
+            fout = open(destination, "w")
+            fout.write(data)
+            fout.close()
+
+        return counter
+
     # Gets a listing of files currently in the master queue for the specified topic
     def get_inbox_list(self, topic):
         master_topic_path = os.path.join(self.master_inbox_path, topic)
