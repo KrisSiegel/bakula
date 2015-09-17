@@ -51,7 +51,7 @@ class InboxerTest(unittest.TestCase):
         inboxer.add_file_by_path("MyTopic", testfile1)
         inboxer.add_file_by_path("MyTopic", testfile2)
         inboxer.add_file_by_path("MyTopic", testfile3)
-        
+
         self.assertEqual(len(inboxer.get_inbox_list("MyTopic")), 3)
 
     def test_promote_to_container_inbox(self):
@@ -76,13 +76,19 @@ class InboxerTest(unittest.TestCase):
 
         inboxer.add_file_by_path("MyTopic", testfile1)
         inboxer.add_file_by_path("MyTopic", testfile2)
-        inboxer.add_file_by_path("MyTopic", testfile3)
+        inboxer.add_file_by_path("MyTopic3", testfile3)
 
-        self.assertEqual(len(inboxer.get_inbox_list("MyTopic")), 3)
+        self.assertEqual(len(inboxer.get_inbox_list("MyTopic")), 2)
 
         inboxer.promote_to_container_inbox("MyTopic", "RandomContainerIDHere")
 
         self.assertEqual(len(inboxer.get_inbox_list("MyTopic")), 0)
+
+        self.assertEqual(len(inboxer.get_inbox_list("MyTopic3")), 1)
+
+        inboxer.promote_to_container_inbox("MyTopic3", ["Container1", "Container2", "Container3"])
+
+        self.assertEqual(len(inboxer.get_inbox_list("MyTopic3")), 0)
 
 if __name__ == '__main__':
     unittest.main()

@@ -46,18 +46,21 @@ class Inboxer:
         return result
 
     # Promotes a file from the master inbox into a container inbox delineated by container id
-    def promote_to_container_inbox(self, topic, containerid):
+    def promote_to_container_inbox(self, topic, containerids):
         promotees = self.get_inbox_list(topic)
         if len(promotees) > 0:
-            container_inboxes_path = os.path.join(self.container_inboxes_path, containerid)
-            if not os.path.exists(container_inboxes_path):
-                os.makedirs(container_inboxes_path)
+            for containerid in containerids if not isinstance(containerids, basestring) else [containerids]:
+                container_inboxes_path = os.path.join(self.container_inboxes_path, containerid)
+                if not os.path.exists(container_inboxes_path):
+                    os.makedirs(container_inboxes_path)
+
+                for fname in promotees:
+                    fullpath = os.path.join(self.master_inbox_path, topic, fname)
+                    destination = os.path.join(container_inboxes_path, fname)
+                    os.link(fullpath, destination)
 
             for fname in promotees:
                 fullpath = os.path.join(self.master_inbox_path, topic, fname)
-                destination = os.path.join(container_inboxes_path, fname)
-                os.link(fullpath, destination)
-
                 if os.stat(fullpath).st_nlink > 0:
                     # Hard link created successfully; delete the original
                     os.remove(fullpath);
