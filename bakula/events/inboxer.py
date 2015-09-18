@@ -16,7 +16,7 @@
 #   under the License.
 
 import os
-from atomic import AtomicLong
+from atomiclong import AtomicLong
 
 # class Inboxer provides basic capabilities to put a file in the master inbox,
 # create a hardlink to that file in the correct container inboxes path and then
