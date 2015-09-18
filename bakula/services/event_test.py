@@ -11,6 +11,8 @@
 # under the License.
 
 import unittest
+import shutil
+import os
 from bakula.services import event
 from webtest import TestApp
 
@@ -18,8 +20,21 @@ test_app = TestApp(event.app)
 
 class EventTest(unittest.TestCase):
 
+    def tearDown(self):
+        shutil.rmtree(".tmp", ignore_errors=True)
+
     def test_post_event(self):
-        pass
+        os.makedirs(".tmp")
+        testfile = os.path.join(".tmp", "testFile.json")
+        # Create our test file
+        with open(testfile, "w+") as fout:
+            fout.write("stuff")
+
+        response = test_app.post("/event", {
+            "topic": "MyTopic"
+        }, upload_files=[("data[]", testfile)], expect_errors=False)
+
+        self.assertEqual(response.status_int, 201)
 
 if __name__ == '__main__':
     unittest.main()

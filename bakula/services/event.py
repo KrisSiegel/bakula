@@ -38,5 +38,6 @@ def post_event():
         if isinstance(item, FileUpload):
             inbox.add_file_by_bytes(topic, item.file.read())
             successfully_queued.append(item.filename)
+            response.status = 201
 
     return { "results": successfully_queued }
