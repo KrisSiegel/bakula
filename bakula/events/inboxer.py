@@ -1,4 +1,19 @@
-#!/usr/bin/python
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing,
+#   software distributed under the License is distributed on an
+#   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+#   KIND, either express or implied.  See the License for the
+#   specific language governing permissions and limitations
+#   under the License.
 
 import os
 from atomic import AtomicLong
@@ -12,12 +27,22 @@ class Inboxer:
         self.master_inbox_path = master_inbox_path
         self.container_inboxes_path = container_inboxes_path
         self.atomic_counter = atomic_counter
+        self.event_subscriptions = { }
 
         if not os.path.exists(self.master_inbox_path):
             os.makedirs(self.master_inbox_path)
 
         if not os.path.exists(self.container_inboxes_path):
             os.makedirs(self.container_inboxes_path)
+
+    def __trigger_event_subscription(self, event, data=None):
+        if event in self.event_subscriptions and self.event_subscriptions[event] is not None:
+            self.event_subscriptions[event](data)
+
+    # Registers a callback for a specific event
+    # Don't care to support multiple registrations per event. Right now at least.
+    def on(self, event, callback):
+        self.event_subscriptions[event] = callback
 
     # Takes a topic and a path to a file on the file system and moved it into
     # the master inbox removing it from its original location
@@ -34,9 +59,10 @@ class Inboxer:
             try:
                 os.rename(file_path, destination)
             except Exception as ex:
-                print "Writing to master inbox failed due to " + ex
+                print "Writing to master inbox failed due to %s" % ex
                 return None
 
+        self.__trigger_event_subscription("received", { "topic": topic })
         return counter
 
     # Takes a topic and data and writes it to the master inbox
@@ -54,9 +80,10 @@ class Inboxer:
                 with open(destination, "w") as fout:
                     fout.write(data)
             except Exception as ex:
-                print "Writing to master inbox failed due to " + ex
+                print "Writing to master inbox failed due to %s" % ex
                 return None
 
+        self.__trigger_event_subscription("received", { "topic": topic })
         return counter
 
     # Gets a listing of files currently in the master queue for the specified topic
@@ -66,7 +93,7 @@ class Inboxer:
         if os.path.exists(master_topic_path):
             for dirname, subdirs, files in os.walk(master_topic_path):
                 for fname in files:
-                    result.extend(fname)
+                    result.append(fname)
 
         return result
 
@@ -90,7 +117,7 @@ class Inboxer:
                         destination = os.path.join(container_inbox_path, fname)
                         os.link(fullpath, destination)
                     except Exception as ex:
-                        print "Generating hard links failed due to " + ex
+                        print "Generating hard links failed due to %s" % ex
                         return None
 
             for fname in promotees:
@@ -100,7 +127,7 @@ class Inboxer:
                     try:
                         os.remove(fullpath);
                     except Exception as ex:
-                        print "Deleting master inbox files after promotion failed due to " + ex
+                        print "Deleting master inbox files after promotion failed due to %s" % ex
                         return None
                 else:
-                    print "Failure creating hard link on " + fullpath
+                    print "Failure creating hard link on %s" % fullpath
