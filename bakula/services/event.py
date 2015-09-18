@@ -15,7 +15,7 @@ from bottle import Bottle, HTTPResponse, request, response, FileUpload
 from bakula.bottle import configuration
 from bakula.bottle.errorutils import create_error
 from bakula.events.inboxer import Inboxer
-from atomic import AtomicLong
+from atomiclong import AtomicLong
 
 app = Bottle()
 
