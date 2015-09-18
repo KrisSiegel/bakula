@@ -17,6 +17,7 @@
 
 import unittest
 import peeweeutils
+import bottle
 from peewee import *
 
 class PeeweeutilsTest(unittest.TestCase):
@@ -26,22 +27,32 @@ class PeeweeutilsTest(unittest.TestCase):
             peeweeutils.get_db_from_config(None)
 
     def test_no_database_type(self):
-        config = {'postgres_database' : 'cookie', 'postgres_user' : 'john'}
+        config = {'database' :  {'user' : 'john', 'name' : ':memory:'}}
+        app = bottle.Bottle()
+        app.config.load_dict(config)
         with self.assertRaises(RuntimeError):
-            peeweeutils.get_db_from_config(config)
+            peeweeutils.get_db_from_config(app.config)
 
     def test_invalid_database_type(self):
-        config = {'databaseType' : 'mysql'}
+        config = {'database' :  {'type' : 'barrydb', 'user' : 'john',
+                                 'name' : ':memory:'}}
+        app = bottle.Bottle()
+        app.config.load_dict(config)
         with self.assertRaises(RuntimeError):
             peeweeutils.get_db_from_config(config)
 
-    def test_no_database_specified(self):
-        config = {'databaseType' : 'postgres', 'postgres_user' : 'john'}
+    def test_no_database_name(self):
+        config = {'database' :  {'type' : 'barrydb', 'user' : 'john' }}
+        app = bottle.Bottle()
+        app.config.load_dict(config)
         with self.assertRaises(RuntimeError):
             peeweeutils.get_db_from_config(config)
 
     def test_valid(self):
-        config = {'sqlite' :  {'user' : 'john', 'database' : ':memory:'}}
+        config = {'database' :  {'type' : 'sqlite', 'user' : 'john',
+                                 'name' : ':memory:'}}
+        app = bottle.Bottle()
+        app.config.load_dict(config)
         db = peeweeutils.get_db_from_config(config)
         self.assertEquals(type(db), SqliteDatabase)
 

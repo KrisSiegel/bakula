@@ -15,6 +15,7 @@
 #   specific language governing permissions and limitations
 #   under the License.
 
+from collections import defaultdict
 from peewee import *
 
 def get_db_from_config(config, proxy=None):
@@ -35,32 +36,43 @@ def get_db_from_config(config, proxy=None):
     if not config:
         raise RuntimeError('No configuration was given!')
 
-    db_args = None
-    for db_type in ['postgres', 'sqlite']:
-        db_args = config.get(db_type, None)
-        if db_args:
-            break
+    # Bottle flattens the configuration with '.'
+    config = unflatten(config)
 
-    # We have exahusted our dictionary
-    if not db_args:
-        raise RuntimeError("Could not find database information!")
+    if 'database' not in config:
+        raise RuntimeError('No Database information was given!')
 
+    db_args = config.get('database')
+    db_type = db_args.get('type', None)
+    if db_type not in ['postgres', 'sqlite']:
+        raise RuntimeError("Bakula doesn't handle database %s"  % db_type)
+    del db_args['type']
 
-    database = db_args.get('database', None)
-    if not database:
-        raise RuntimeError('No database was found!')
-
-    del db_args['database']
+    database_name = db_args.get('name')
+    if not database_name:
+        raise RuntimeError('No database name was found!')
+    del db_args['name']
 
     # Create a new database based on our type
     db = None
     if db_type == 'postgres':
-        db = PostgresqlDatabase(database, **db_args)
+        db = PostgresqlDatabase(database_name, **db_args)
     elif db_type == 'sqlite':
-        db = SqliteDatabase(database, **db_args)
+        db = SqliteDatabase(database_name, **db_args)
 
     if proxy:
         proxy.initialize(db)
         return
 
     return db
+
+
+def unflatten(d):
+    ret = defaultdict(dict)
+    for k,v in d.items():
+        k1,delim,k2 = k.partition('.')
+        if delim:
+            ret[k1].update({k2:v})
+        else:
+            ret[k1] = v
+    return ret
