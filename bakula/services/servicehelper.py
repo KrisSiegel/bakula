@@ -10,8 +10,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 from bottle import Bottle
+from bakula.bottle import configuration
+from bakula.security.tokenauthplugin import TokenAuthorizationPlugin
 
-class BakulaService(object):
+def init_app(app):
+    configuration.bootstrap_app_config(app)
 
-    def __init__(self):
-        self._app = Bottle()
+    # Setup authorization plugin
+    token_secret = app.config.get('token_secret', 'password')
+    auth_plugin = TokenAuthorizationPlugin(token_secret)
+    app.install(auth_plugin)
+
+    return auth_plugin

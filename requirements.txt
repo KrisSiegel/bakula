@@ -4,3 +4,4 @@ bottle
 peewee
 webtest
 simplejson
+itsdangerous

@@ -48,10 +48,10 @@ def initialize_models(config):
     User.create_table(True)
     Registration.create_table(True)
 
-    # TODO make this an admin user
-    user = None
+    # The first user in the DB will be the admin user
     try:
-        user = User.get(User.id == 'test')
+        User.get(User.id == 'admin')
     except User.DoesNotExist:
-        user = User.create(id='test', password=md5('password'))
-        user.save()
+        # Scope this import to avoid an issue with circular dependencies (with the User class)
+        from bakula.security import iam
+        iam.create('admin', config.get('admin_password', 'secret'))
