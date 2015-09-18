@@ -29,6 +29,10 @@ def authenticate(id, password):
     """
     try:
         user = User.get(User.id == id)
+        # Check that the incoming (unhashed) password matches the stored (hashed)
+        # password. The hashpw method takes the hashed password, uses the stored salt, and
+        # hashes the incoming password. Then we check the result against the stored (hashed)
+        # password.
         if bcrypt.hashpw(password, user.password) == user.password:
             return True
         return False
