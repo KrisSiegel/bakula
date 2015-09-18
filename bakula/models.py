@@ -63,10 +63,6 @@ def initialize_models(config):
     User.create_table(True)
     Registration.create_table(True)
 
-    # The first user in the DB will be the admin user
-    try:
-        User.get(User.id == 'admin')
-    except User.DoesNotExist:
-        # Scope this import to avoid an issue with circular dependencies (with the User class)
-        from bakula.security import iam
-        iam.create('admin', config.get('admin_password', 'secret'))
+    # The first user in the DB will be the admin user. Ignore errors.
+    from bakula.security import iam
+    iam.create('admin', config.get('admin_password', 'secret'))
