@@ -1,5 +1,5 @@
 docker-py
-atomic
+atomiclong
 bottle
 peewee
 webtest
