@@ -8,8 +8,8 @@ VAGRANT_BOX = "ubuntu/trusty64"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = VAGRANT_BOX
 
-  # Expose 4242 to our host
-  config.vm.network :forwarded_port, guest: 4242, host: 4242
+  # Expose 5000 to our host
+  config.vm.network :forwarded_port, guest: 5000, host: 5000
 
   # Install all the needed packages
   config.vm.provision "shell", inline: "apt-get update"
