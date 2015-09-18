@@ -11,6 +11,24 @@ class InboxerTest(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(".tmp", ignore_errors=True)
 
+    def test_on(self):
+        def callback(data):
+            self.assertEqual(data["topic"], "MyTopicEvent")
+
+        master_inbox_path = os.path.join(".tmp", "master_inbox")
+        container_inboxes_path = os.path.join(".tmp", "container_inboxes")
+        testfile = os.path.join(".tmp", "testFile.json")
+
+        # Initialize inboxer using a tmp directory for unit testing
+        inboxer = Inboxer(master_inbox_path, container_inboxes_path)
+
+        inboxer.on("received", callback)
+        # Create our test file
+        with open(testfile, "a"):
+            os.utime(testfile, None)
+
+        counter = inboxer.add_file_by_path("MyTopicEvent", testfile)
+
     def test_add_file_by_path(self):
         master_inbox_path = os.path.join(".tmp", "master_inbox")
         container_inboxes_path = os.path.join(".tmp", "container_inboxes")

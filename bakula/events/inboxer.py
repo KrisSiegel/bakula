@@ -21,12 +21,22 @@ class Inboxer:
         self.master_inbox_path = master_inbox_path
         self.container_inboxes_path = container_inboxes_path
         self.atomic_counter = atomic_counter
+        self.event_subscriptions = { }
 
         if not os.path.exists(self.master_inbox_path):
             os.makedirs(self.master_inbox_path)
 
         if not os.path.exists(self.container_inboxes_path):
             os.makedirs(self.container_inboxes_path)
+
+    def __trigger_event_subscription(self, event, data=None):
+        if event in self.event_subscriptions and self.event_subscriptions[event] is not None:
+            self.event_subscriptions[event](data)
+
+    # Registers a callback for a specific event
+    # Don't care to support multiple registrations per event. Right now at least.
+    def on(self, event, callback):
+        self.event_subscriptions[event] = callback
 
     # Takes a topic and a path to a file on the file system and moved it into
     # the master inbox removing it from its original location
@@ -46,6 +56,7 @@ class Inboxer:
                 print "Writing to master inbox failed due to %s" % ex
                 return None
 
+        self.__trigger_event_subscription("received", { "topic": topic })
         return counter
 
     # Takes a topic and data and writes it to the master inbox
@@ -66,6 +77,7 @@ class Inboxer:
                 print "Writing to master inbox failed due to %s" % ex
                 return None
 
+        self.__trigger_event_subscription("received", { "topic": topic })
         return counter
 
     # Gets a listing of files currently in the master queue for the specified topic
