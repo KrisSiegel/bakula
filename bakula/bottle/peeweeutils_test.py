@@ -41,8 +41,7 @@ class PeeweeutilsTest(unittest.TestCase):
             peeweeutils.get_db_from_config(config)
 
     def test_valid(self):
-        config = {'databaseType' : 'sqlite', 'sqlite_user' : 'john',
-                'sqlite_database' : ':memory:'}
+        config = {'sqlite' :  {'user' : 'john', 'database' : ':memory:'}}
         db = peeweeutils.get_db_from_config(config)
         self.assertEquals(type(db), SqliteDatabase)
 

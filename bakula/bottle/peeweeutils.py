@@ -35,26 +35,22 @@ def get_db_from_config(config, proxy=None):
     if not config:
         raise RuntimeError('No configuration was given!')
 
-    # Get our database type
-    db_type = config.get('databaseType', None)
+    db_args = None
+    for db_type in ['postgres', 'sqlite']:
+        db_args = config.get(db_type, None)
+        if db_args:
+            break
 
-    if not db_type in ['postgres', 'sqlite']:
-        raise RuntimeError("Unknown database %s" % db_type)
+    # We have exahusted our dictionary
+    if not db_args:
+        raise RuntimeError("Could not find database information!")
 
-    db_args = {}
-    prefix = "%s_" % db_type
-    database = None
-    for key in config.keys():
-        if key.startswith(prefix):
-            arg_value = config[key]
-            arg_key = key[len(prefix):]
-            if arg_key == 'database':
-                database = arg_value
-            else:
-                db_args[arg_key] = arg_value
 
+    database = db_args.get('database', None)
     if not database:
-        raise RuntimeError('No database string was sepcified!')
+        raise RuntimeError('No database was found!')
+
+    del db_args['database']
 
     # Create a new database based on our type
     db = None
