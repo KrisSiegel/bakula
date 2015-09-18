@@ -33,11 +33,22 @@ app.install(auth_plugin)
 
 # Set up connection defaults
 auth = (app.config.get('registry_username'), app.config.get('registry_password'))
-base_url = app.config.get('registry_url', 'https://registry.immuta.com/v1/')
+registry_host = app.config.get('registry_host', 'registry.immuta.com')
+protocol = app.config.get('registry_protocol', 'https')
+base_url = urlparse.urljoin('://'.join([protocol, registry_host]), 'v1/')
+
+# Helper method for getting the image name from the docker registry response. Prepends
+# the registry hostname.
+#
+# Params:
+#    image: the image information returned from the Docker registry for a single
+#           image
+def get_image_name(image):
+    return '/'.join([registry_host, image['name']])
 
 @app.get('/images')
 def get_images():
-    response = requests.get(urlparse.urljoin(base_url, 'search'))
+    response = requests.get(urlparse.urljoin(base_url, 'search'), auth=auth)
     response_obj = response.json()
-    image_names = map(lambda image: image['name'], response_obj['results'])
+    image_names = map(get_image_name, response_obj['results'])
     return {'images': image_names}
