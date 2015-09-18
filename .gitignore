@@ -214,3 +214,5 @@ out
 .vagrant/
 ui/ext-lib
 **/*.db
+master_inbox
+container_inboxes
