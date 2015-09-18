@@ -49,7 +49,7 @@ class Inboxer:
             try:
                 os.rename(file_path, destination)
             except Exception as ex:
-                print "Writing to master inbox failed due to " + ex
+                print "Writing to master inbox failed due to %s" % ex
                 return None
 
         return counter
@@ -69,7 +69,7 @@ class Inboxer:
                 with open(destination, "w") as fout:
                     fout.write(data)
             except Exception as ex:
-                print "Writing to master inbox failed due to " + ex
+                print "Writing to master inbox failed due to %s" % ex
                 return None
 
         return counter
@@ -81,7 +81,7 @@ class Inboxer:
         if os.path.exists(master_topic_path):
             for dirname, subdirs, files in os.walk(master_topic_path):
                 for fname in files:
-                    result.extend(fname)
+                    result.append(fname)
 
         return result
 
@@ -105,7 +105,7 @@ class Inboxer:
                         destination = os.path.join(container_inbox_path, fname)
                         os.link(fullpath, destination)
                     except Exception as ex:
-                        print "Generating hard links failed due to " + ex
+                        print "Generating hard links failed due to %s" % ex
                         return None
 
             for fname in promotees:
@@ -115,7 +115,7 @@ class Inboxer:
                     try:
                         os.remove(fullpath);
                     except Exception as ex:
-                        print "Deleting master inbox files after promotion failed due to " + ex
+                        print "Deleting master inbox files after promotion failed due to %s" % ex
                         return None
                 else:
-                    print "Failure creating hard link on " + fullpath
+                    print "Failure creating hard link on %s" % fullpath
