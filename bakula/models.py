@@ -65,3 +65,4 @@ def initialize_models(config):
 
     # The first user in the DB will be the admin user. Ignore errors.
     from bakula.security import iam
+    iam.create('admin', config.get('admin_password', 'secret'))
