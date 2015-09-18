@@ -24,11 +24,12 @@ class DockerAgent(object):
     CONTAINER_INBOX = '/inbox'
     NAME_CHARS_TO_REPLACE = ['/', '-', ':']
 
-    def __init__(self, docker_base_url='unix://var/run/docker.sock', tls_config=False):
+    def __init__(self, docker_base_url='unix://var/run/docker.sock', tls_config=False, container_inbox=CONTAINER_INBOX):
         self._docker_client = docker.Client(base_url=docker_base_url, tls=tls_config)
         self._containers = {}
         self._name_dict = {}
         self._update_container_indexes()
+        self._my_inbox = container_inbox
 
     def build_image(self, path, image_name,
                     dockerfile='Dockerfile'):
@@ -42,14 +43,13 @@ class DockerAgent(object):
 
     def start_container(self,
                         image_name,
-                        host_inbox,
                         ports=None,
                         run_privileged=False,
                         command=None):
         container_name = self._create_container_name(image_name)
 
         # Create inbox volume for container
-        container_volumes_str = '%s:%s:rw' % (host_inbox, DockerAgent.CONTAINER_INBOX)
+        container_volumes_str = '%s:%s:rw' % self._my_inbox
 
         host_config_obj = self._docker_client.create_host_config(
             privileged=run_privileged,
@@ -59,7 +59,7 @@ class DockerAgent(object):
         container = self._docker_client.create_container(image=image_name,
                                                          name=container_name,
                                                          host_config=host_config_obj,
-                                                         volumes=[DockerAgent.CONTAINER_INBOX],
+                                                         volumes=[self._my_inbox],
                                                          command=command)
         container_id = container['Id']
         res = self._docker_client.start(container['Id'])
@@ -135,4 +135,3 @@ class DockerAgent(object):
             self._name_dict[image_name]=[name]
         else:
             self._name_dict[image_name].append(name)
-
