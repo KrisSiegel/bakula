@@ -3,3 +3,4 @@ atomic
 bottle
 peewee
 webtest
+simplejson

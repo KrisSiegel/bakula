@@ -10,7 +10,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import json
+# Using simplejson here because it doesn't do any json unicode silliness
+# which mucks with the app.config.load_dict method. See https://github.com/bottlepy/bottle/issues/720.
+# The issue has actually been fixed and closed, but they haven't tagged a new version since December
+# (which didn't have the fix). So, remove this and use the regular json module once bottle has
+# been updated beyond 0.12.8.
+import simplejson
 import logging
 import os
 
@@ -49,6 +54,6 @@ def bootstrap_app_config(app):
     logger.info("Attempting load configuration from %s" % json_file)
     json_obj = None
     with open(json_file, 'r') as json_contents:
-        json_obj = json.load(json_contents)
+        json_obj = simplejson.load(json_contents)
 
     app.config.load_dict(json_obj)

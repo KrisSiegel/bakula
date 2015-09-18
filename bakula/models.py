@@ -1,10 +1,8 @@
-from peewee import *
+from peewee import Proxy, Model, CharField, ForeignKeyField
 from hashlib import md5
+from bakula.bottle import peeweeutils
 
-# TODO: once the swappable database is completed
-# from bakula.database import db
-
-db = SqliteDatabase('bakula.db')
+db = Proxy()
 
 class BaseModel(Model):
     class Meta:
@@ -37,16 +35,23 @@ def resolve_query(query):
         result.append(item)
     return result
 
-# Create all of the model tables with silent failures (in case the tables
-# already exist)
-User.create_table(True)
-Registration.create_table(True)
+# Initialize all Models (and their database tables) with a configuration object
+# denoting which database should be used.
+#
+# Params:
+#    config: the configuration object for Bakula
+def initialize_models(config):
+    peeweeutils.get_db_from_config(config, db)
 
-# TODO testing
-user = None
-try:
-    user = User.get(User.id == 'test')
-except User.DoesNotExist:
-    print "user didn't exist"
-    user = User.create(id='test', password=md5('password'))
-    user.save()
+    # Create all of the model tables with silent failures (in case the tables
+    # already exist)
+    User.create_table(True)
+    Registration.create_table(True)
+
+    # TODO make this an admin user
+    user = None
+    try:
+        user = User.get(User.id == 'test')
+    except User.DoesNotExist:
+        user = User.create(id='test', password=md5('password'))
+        user.save()

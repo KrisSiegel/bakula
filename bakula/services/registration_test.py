@@ -4,10 +4,15 @@ import json
 from io import BytesIO
 from bakula.services import registration
 from webtest import TestApp
+from bakula import models
 
 test_app = TestApp(registration.app)
 
 class RegistrationTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        models.initialize_models({'sqlite_database': ':memory:', 'databaseType': 'sqlite'})
+
     def setUp(self):
         models.Registration.delete().execute()
 

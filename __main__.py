@@ -14,6 +14,8 @@ import sys
 
 from bottle import Bottle, run
 from bakula.services import healthcheck, registration
+from bakula.models import initialize_models
+from bakula.bottle import configuration
 
 app = Bottle()
 
@@ -23,11 +25,6 @@ sub_apps = [
     healthcheck.app,
     registration.app
 ]
-
-
-
-
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Bakula server')
@@ -40,4 +37,7 @@ if __name__ == '__main__':
 
     for sub_app in sub_apps:
         app.merge(sub_app)
+
+    configuration.bootstrap_app_config(app)
+    initialize_models(app.config)
     run(app, host=args.host, port=args.port)
