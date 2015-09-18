@@ -15,6 +15,7 @@ from bottle import Bottle, HTTPResponse, request, response, FileUpload
 from bakula.bottle import configuration
 from bakula.bottle.errorutils import create_error
 from bakula.events.inboxer import Inboxer
+from bakula.events.orchestrator import Orchestrator
 from atomiclong import AtomicLong
 
 app = Bottle()
@@ -23,6 +24,8 @@ configuration.bootstrap_app_config(app)
 
 count = AtomicLong(0)
 inbox = Inboxer(atomic_counter=count)
+
+orchestrator = Orchestrator(inboxer=inbox)
 
 # Accepts a multipart form
 # Field 'topic' -> The topic for the attached file(s)
