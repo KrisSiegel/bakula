@@ -13,7 +13,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # Install all the needed packages
   config.vm.provision "shell", inline: "apt-get update"
-  config.vm.provision "shell", inline: "apt-get -y install python-pip python-dev"
+  config.vm.provision "shell", inline: "apt-get -y install python-pip python-dev libffi-dev"
   config.vm.provision "shell", inline: "wget -qO- https://get.docker.com/ | sh"
   config.vm.provision "shell", inline: "gpasswd -a vagrant docker"
   config.vm.provision "shell", inline: "pip install -r /vagrant/requirements.txt"
