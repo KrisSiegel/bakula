@@ -15,15 +15,21 @@
 #   specific language governing permissions and limitations
 #   under the License.
 
-from bottle import Bottle, HTTPResponse, request
+from bottle import Bottle, request
 from bakula.bottle import configuration
 from bakula.models import Registration, User, resolve_query
 from bakula.bottle.errorutils import create_error
+from bakula.security.tokenauthplugin import TokenAuthorizationPlugin
 from peewee import IntegrityError
 
 app = Bottle()
 
 configuration.bootstrap_app_config(app)
+
+# Setup authorization plugin
+token_secret = app.config.get('token_secret', 'password')
+auth_plugin = TokenAuthorizationPlugin(token_secret)
+app.install(auth_plugin)
 
 @app.get('/registration')
 def get_registrations():
@@ -39,10 +45,9 @@ def get_registration(registration_id):
                             message='A registration with the ID %s does not exist' % (registration_id))
 
 @app.post('/registration')
-def create_registration():
+def create_registration(user):
     registration_dict = request.json
-    # TODO this should be auto-injected
-    registration_dict['creator'] = User.get(User.id == 'test')
+    registration_dict['creator'] = user
 
     new_registration = Registration(**registration_dict)
     try:
@@ -54,9 +59,10 @@ def create_registration():
                             (registration_dict['topic'], registration_dict['container']))
 
 @app.delete('/registration/<registration_id>')
-def delete_registration(registration_id):
+def delete_registration(registration_id, user):
     try:
-        registration = Registration.get(Registration.id == registration_id)
+        registration = Registration.get(Registration.id == registration_id,
+                                        Registration.creator == user)
         id = registration.id
         registration.delete_instance()
         return {'id': id}

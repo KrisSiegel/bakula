@@ -14,9 +14,7 @@
 #   KIND, either express or implied.  See the License for the
 #   specific language governing permissions and limitations
 #   under the License.
-
 from peewee import Proxy, Model, CharField, ForeignKeyField
-from hashlib import md5
 from bakula.bottle import peeweeutils
 
 db = Proxy()
@@ -65,10 +63,6 @@ def initialize_models(config):
     User.create_table(True)
     Registration.create_table(True)
 
-    # TODO make this an admin user
-    user = None
-    try:
-        user = User.get(User.id == 'test')
-    except User.DoesNotExist:
-        user = User.create(id='test', password=md5('password'))
-        user.save()
+    # The first user in the DB will be the admin user. Ignore errors.
+    from bakula.security import iam
+    iam.create('admin', config.get('admin_password', 'secret'))
