@@ -81,7 +81,7 @@ class RegistrationTest(unittest.TestCase):
         response = test_app.delete('/registration/1')
 
         self.assertEquals(response.status_int, 200)
-        self.assertEquals(response.json['id'], '1')
+        self.assertEquals(response.json['id'], 1)
 
         had_exception = False
         try:
@@ -92,6 +92,17 @@ class RegistrationTest(unittest.TestCase):
 
     def test_delete_does_not_exist(self):
         response = test_app.delete('/registration/1', expect_errors=True)
+        self.assertEquals(response.status_int, 404)
+
+    def test_get_registration(self):
+        # TODO: User = test should be removed once we are auto-injecting users
+        models.Registration(topic='topic', container='container', creator='test').save()
+        response = test_app.get('/registration/1')
+        self.assertEquals(response.status_int, 200)
+        self.assertEquals(response.json['id'], 1)
+
+    def test_get_registration_missing(self):
+        response = test_app.get('/registration/1', expect_errors=True)
         self.assertEquals(response.status_int, 404)
 
 if __name__ == '__main__':

@@ -23,6 +23,15 @@ configuration.bootstrap_app_config(app)
 def get_registrations():
     return {'results': resolve_query(Registration.select())}
 
+@app.get('/registration/<registration_id>')
+def get_registration(registration_id):
+    try:
+        registration = Registration.get(Registration.id == registration_id)
+        return registration._data
+    except Registration.DoesNotExist:
+        return create_error(status_code=404,
+                            message='A registration with the ID %s does not exist' % (registration_id))
+
 @app.post('/registration')
 def create_registration():
     registration_dict = request.json
@@ -42,8 +51,9 @@ def create_registration():
 def delete_registration(registration_id):
     try:
         registration = Registration.get(Registration.id == registration_id)
+        id = registration.id
         registration.delete_instance()
-        return {'id': registration_id}
+        return {'id': id}
     except Registration.DoesNotExist:
         return create_error(status_code=404,
                             message='A registration with the ID %s does not exist' % (registration_id))
