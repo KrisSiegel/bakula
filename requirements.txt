@@ -5,3 +5,4 @@ peewee
 webtest
 simplejson
 itsdangerous
+py-bcrypt

@@ -41,7 +41,6 @@ def get_registration(registration_id):
 @app.post('/registration')
 def create_registration(user):
     registration_dict = request.json
-    # TODO this should be auto-injected
     registration_dict['creator'] = user
 
     new_registration = Registration(**registration_dict)
@@ -54,7 +53,7 @@ def create_registration(user):
                             (registration_dict['topic'], registration_dict['container']))
 
 @app.delete('/registration/<registration_id>')
-def delete_registration(registration_id):
+def delete_registration(registration_id, user):
     try:
         registration = Registration.get(Registration.id == registration_id,
                                         Registration.creator == user)
