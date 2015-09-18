@@ -18,7 +18,7 @@ import argparse
 import sys
 
 from bottle import Bottle, run
-from bakula.services import healthcheck, registration, event
+from bakula.services import healthcheck, registration, event, user
 from bakula.models import initialize_models
 from bakula.bottle import configuration
 
@@ -29,7 +29,7 @@ app = Bottle()
 sub_apps = [
     healthcheck.app,
     registration.app,
-    user.app
+    user.app,
     event.app
 ]
 
