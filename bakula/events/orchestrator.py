@@ -47,5 +47,7 @@ class Orchestrator:
 
             for container_inbox in container_inboxes:
                 for container_info in container_infos:
-                    agent = DockerAgent(container_inbox=container_inbox)
-                    agent.start_container(image_name=container_info["container"])
+                    print "Container inbox: %s" % container_inbox
+                    print "Executing in %s container" % container_info["container"]
+                    #agent = DockerAgent(container_inbox=container_inbox)
+                    #agent.start_container(image_name=container_info["container"])
