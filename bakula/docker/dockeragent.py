@@ -24,15 +24,29 @@ class DockerAgent(object):
     CONTAINER_INBOX = '/inbox'
     NAME_CHARS_TO_REPLACE = ['/', '-', ':']
 
-    def __init__(self, docker_base_url='unix://var/run/docker.sock', tls_config=False):
-        self._docker_client = docker.Client(base_url=docker_base_url, tls=tls_config)
+    def __init__(self, docker_base_url='unix://var/run/docker.sock',
+                 registry_host=None,
+                 username_and_password_tuple=None,
+                 registry_protocol='https',
+                 tls_config=False):
+
         self._containers = {}
         self._name_dict = {}
+        self._docker_client = docker.Client(base_url=docker_base_url, tls=tls_config)
+        if registry_host and username_and_password:
+            registry_url="%s://%s" % (registry_protocol, registry_host)
+            self._docker_client.login(username_and_password_tuple[0],
+                                      username_and_password_tuple[1],
+                                      registry=registry_url)
+
         self._update_container_indexes()
 
     def build_image(self, path, image_name,
                     dockerfile='Dockerfile'):
         build_generator = self._docker_client.build(path=path, tag=image_name)
+
+    def pull(self, repository, tag):
+        return self._docker_client.pull(repository, tag=tag)
 
     def check_if_image_exists(self, image_name):
         for image in self._docker_client.images():
