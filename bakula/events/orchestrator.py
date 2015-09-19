@@ -43,7 +43,9 @@ class Orchestrator:
             # Promote all files in the inbox, delineated by topic, to a directory for
             # a container to mount; returns a list of created inboxes
             container_inboxes = self.inboxer.promote_to_container_inbox(data["topic"], str(uuid.uuid4()))
+            container_infos = self.__get_registered_containers(data["topic"])
 
             for container_inbox in container_inboxes:
-                agent = DockerAgent(container_inbox=container_inbox)
-                # TODO: DockerAgent creation currently fails; fix and make it start a container
+                for container_info in container_infos:
+                    agent = DockerAgent(container_inbox=container_inbox)
+                    agent.start_container(image_name=container_info["container"])
