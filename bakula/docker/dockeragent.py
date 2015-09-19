@@ -26,17 +26,18 @@ class DockerAgent(object):
 
     def __init__(self, docker_base_url='unix://var/run/docker.sock',
                  registry_host=None,
-                 username_and_password_tuple=None,
+                 username=None,
+                 password=None,
                  registry_protocol='https',
                  tls_config=False):
 
         self._containers = {}
         self._name_dict = {}
         self._docker_client = docker.Client(base_url=docker_base_url, tls=tls_config)
-        if registry_host and username_and_password:
+        if registry_host and registry_protocol and username and password:
             registry_url="%s://%s" % (registry_protocol, registry_host)
-            self._docker_client.login(username_and_password_tuple[0],
-                                      username_and_password_tuple[1],
+            self._docker_client.login(username,
+                                      password,
                                       registry=registry_url)
 
         self._update_container_indexes()
