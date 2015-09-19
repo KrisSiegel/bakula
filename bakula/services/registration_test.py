@@ -29,7 +29,7 @@ class RegistrationTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        models.initialize_models({'sqlite_database': ':memory:', 'databaseType': 'sqlite'})
+        models.initialize_models({'database.name': ':memory:', 'database.type': 'sqlite'})
         iam.create('user', 'some_password')
         RegistrationTest.test_user = models.User.get(models.User.id == 'user')
         RegistrationTest.auth_header = {'Authorization': tokenutils.generate_auth_token('password', RegistrationTest.test_user.id, 120)}
@@ -49,6 +49,9 @@ class RegistrationTest(unittest.TestCase):
         from_db = models.Registration.get(models.Registration.id == 1)
         self.assertIsNotNone(from_db)
         self.assertEquals(from_db.topic, topic)
+        self.assertEquals(from_db.threshold, 0)
+        self.assertEquals(from_db.timeout, 0)
+        self.assertFalse(from_db.privileged)
 
     def test_create_registration_already_exists(self):
         topic = 'test'

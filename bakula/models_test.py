@@ -31,7 +31,7 @@ class ModelsTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        peeweeutils.get_db_from_config({'sqlite_database': ':memory:', 'databaseType': 'sqlite'}, test_db)
+        peeweeutils.get_db_from_config({'database.name': ':memory:', 'database.type': 'sqlite'}, test_db)
         TestModel.create_table()
         obj = TestModel(name='test', message='this is a test model')
         obj.save()
@@ -48,7 +48,7 @@ class ModelsTest(unittest.TestCase):
         self.assertEqual(results[0]['name'], 'test')
 
     def test_initialize_models(self):
-        models.initialize_models({'sqlite_database': ':memory:', 'databaseType': 'sqlite'})
+        models.initialize_models({'database.name': ':memory:', 'database.type': 'sqlite'})
         self.assertTrue(models.Registration.table_exists())
         self.assertTrue(models.User.table_exists())
 
