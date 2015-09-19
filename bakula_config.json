@@ -1,0 +1,7 @@
+{
+    "database": {
+        "type": "sqlite",
+        "user": "admin",
+        "name": ":memory:"
+    }
+}
