@@ -33,7 +33,10 @@ app.install(auth_plugin)
 
 @app.get('/registration')
 def get_registrations():
-    return {'results': resolve_query(Registration.select())}
+    query = Registration.select()
+    if 'creator' in request.query:
+        query = query.where(Registration.creator == request.query['creator'])
+    return {'results': resolve_query(query)}
 
 @app.get('/registration/<registration_id>')
 def get_registration(registration_id):

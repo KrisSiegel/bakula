@@ -121,5 +121,20 @@ class RegistrationTest(unittest.TestCase):
         response = test_app.get('/registration/1', expect_errors=True, headers=RegistrationTest.auth_header)
         self.assertEquals(response.status_int, 404)
 
+    def test_get_registrations_for_user(self):
+        admin_user = models.User.get(models.User.id == 'admin')
+        models.Registration(topic='topic', container='user_container', creator=RegistrationTest.test_user).save()
+        models.Registration(topic='topic', container='admin_container', creator=admin_user).save()
+
+        response = test_app.get('/registration', headers=RegistrationTest.auth_header, params={'creator': 'admin'})
+        self.assertEquals(len(response.json['results']), 1)
+        self.assertEquals(response.json['results'][0]['creator'], 'admin')
+        self.assertEquals(response.json['results'][0]['container'], 'admin_container')
+
+        response = test_app.get('/registration', headers=RegistrationTest.auth_header, params={'creator': 'user'})
+        self.assertEquals(len(response.json['results']), 1)
+        self.assertEquals(response.json['results'][0]['creator'], 'user')
+        self.assertEquals(response.json['results'][0]['container'], 'user_container')
+
 if __name__ == '__main__':
     unittest.main()
