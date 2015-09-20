@@ -18,7 +18,7 @@ import argparse
 import sys
 
 from bottle import Bottle, run
-from bakula.services import healthcheck, registration, event, user
+from bakula.services import healthcheck, registration, event, user, docker
 from bakula.models import initialize_models
 from bakula.bottle import configuration
 
@@ -30,7 +30,8 @@ sub_apps = [
     healthcheck.app,
     registration.app,
     user.app,
-    event.app
+    event.app,
+    docker.app
 ]
 
 if __name__ == '__main__':

@@ -6,3 +6,5 @@ webtest
 simplejson
 itsdangerous
 py-bcrypt
+requests
+
