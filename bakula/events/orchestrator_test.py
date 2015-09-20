@@ -14,3 +14,26 @@
 #   KIND, either express or implied.  See the License for the
 #   specific language governing permissions and limitations
 #   under the License.
+
+import unittest
+import os
+import shutil
+from inboxer import Inboxer
+from orchestrator import Orchestrator
+
+class OrchestratorTest(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        shutil.rmtree(".tmp", ignore_errors=True)
+
+    def test_Orchestrator(self):
+        inboxer = Inboxer(os.path.join(".tmp", "master_inbox"), os.path.join(".tmp", "container_inboxes"))
+        orchestrator = Orchestrator(inboxer)
+        inboxer.add_file_by_bytes("MyTopic", "This is some data")
+        self.assertEqual(len(inboxer.get_inbox_list("MyTopic")), 0)
+
+if __name__ == '__main__':
+    unittest.main()

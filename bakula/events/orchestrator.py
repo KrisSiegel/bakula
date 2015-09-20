@@ -39,7 +39,7 @@ class Orchestrator:
         inbox_list = self.inboxer.get_inbox_list(data["topic"])
 
         # Are there enough items in the inbox to trigger the threshold?
-        if len(inbox_list) > 1: # This is just a temporary threshold
+        if len(inbox_list) >= 1: # This is just a temporary threshold
             # Promote all files in the inbox, delineated by topic, to a directory for
             # a container to mount; returns a list of created inboxes
             container_inboxes = self.inboxer.promote_to_container_inbox(data["topic"], str(uuid.uuid4()))
