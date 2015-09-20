@@ -24,18 +24,36 @@ class DockerAgent(object):
     CONTAINER_INBOX = '/inbox'
     NAME_CHARS_TO_REPLACE = ['/', '-', ':']
 
-    def __init__(self, docker_base_url='unix://var/run/docker.sock', tls_config=False):
-        self._docker_client = docker.Client(base_url=docker_base_url, tls=tls_config)
+    def __init__(self, docker_base_url='unix://var/run/docker.sock',
+                 registry_host=None,
+                 username=None,
+                 password=None,
+                 registry_protocol='https',
+                 tls_config=False):
+
         self._containers = {}
         self._name_dict = {}
+        self._docker_client = docker.Client(base_url=docker_base_url, tls=tls_config)
+        if registry_host and registry_protocol and username and password:
+            registry_url="%s://%s" % (registry_protocol, registry_host)
+            self._docker_client.login(username,
+                                      password,
+                                      registry=registry_url)
+
         self._update_container_indexes()
 
     def build_image(self, path, image_name,
                     dockerfile='Dockerfile'):
         build_generator = self._docker_client.build(path=path, tag=image_name)
 
+    def pull(self, repository, tag=None):
+        return self._docker_client.pull(repository, tag=tag)
+
     def check_if_image_exists(self, image_name):
         for image in self._docker_client.images():
+	    repo_tags = image.get('RepoTags', [])
+	    if any(image_name in x for x in repo_tags):
+		return True
             if 'RepoTags' in image and image_name in image['RepoTags']:
                 return True
         return False
@@ -87,9 +105,12 @@ class DockerAgent(object):
     def _update_container_indexes(self):
         self._name_dict = {}
         self._containers = {}
-        for container in self._docker_client.containers():
+        for container in self._docker_client.containers(all=True):
             image_name = container['Image']
-            image_name = image_name[0:image_name.rfind(':')]
+	    index = image_name.rfind(':')
+	    if index == -1:
+		index = len(image_name)
+            image_name = image_name[0:index]
             # We only believe in one name per container here folks
             name = container['Names'][0]
             # Remove the first /
@@ -135,4 +156,3 @@ class DockerAgent(object):
             self._name_dict[image_name]=[name]
         else:
             self._name_dict[image_name].append(name)
-
