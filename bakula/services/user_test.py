@@ -28,7 +28,7 @@ class UserTest(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         UserTest.test_token = tokenutils.generate_auth_token('password', 'admin', 60)
-        models.initialize_models({'sqlite_database': ':memory:', 'databaseType': 'sqlite'})
+        models.initialize_models({'database.name': ':memory:', 'database.type': 'sqlite'})
 
     def setUp(self):
         models.User.delete().execute()
