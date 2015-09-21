@@ -45,7 +45,8 @@ def get_registration(registration_id):
         return registration._data
     except Registration.DoesNotExist:
         return create_error(status_code=404,
-                            message='A registration with the ID %s does not exist' % (registration_id))
+                            message=('A registration with the ID %s does not '
+                                     'exist') % (registration_id))
 
 @app.post('/registration')
 def create_registration(user):
@@ -58,8 +59,10 @@ def create_registration(user):
         return {'id': new_registration.id}
     except IntegrityError:
         return create_error(status_code=400,
-                            message='A registration for topic %s with container %s already exists' %
-                            (registration_dict['topic'], registration_dict['container']))
+                            message=('A registration for topic %s with '
+                                     'container %s already exists') %
+                            (registration_dict['topic'],
+                             registration_dict['container']))
 
 @app.delete('/registration/<registration_id>')
 def delete_registration(registration_id, user):
@@ -71,4 +74,5 @@ def delete_registration(registration_id, user):
         return {'id': id}
     except Registration.DoesNotExist:
         return create_error(status_code=404,
-                            message='A registration with the ID %s does not exist' % (registration_id))
+                            message=('A registration with the ID %s does not '
+                                     ' exist') % (registration_id))

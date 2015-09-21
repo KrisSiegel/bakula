@@ -29,10 +29,16 @@ class RegistrationTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        models.initialize_models({'sqlite_database': ':memory:', 'databaseType': 'sqlite'})
+        models.initialize_models({'database.name': ':memory:',
+                                  'database.type': 'sqlite'})
         iam.create('user', 'some_password')
         RegistrationTest.test_user = models.User.get(models.User.id == 'user')
-        RegistrationTest.auth_header = {'Authorization': tokenutils.generate_auth_token('password', RegistrationTest.test_user.id, 120)}
+        RegistrationTest.auth_header = {
+            'Authorization': tokenutils.generate_auth_token(
+                'password',
+                RegistrationTest.test_user.id,
+                120)
+        }
 
     def setUp(self):
         models.Registration.delete().execute()
@@ -49,11 +55,16 @@ class RegistrationTest(unittest.TestCase):
         from_db = models.Registration.get(models.Registration.id == 1)
         self.assertIsNotNone(from_db)
         self.assertEquals(from_db.topic, topic)
+        self.assertEquals(from_db.threshold, 0)
+        self.assertEquals(from_db.timeout, 0)
+        self.assertFalse(from_db.privileged)
 
     def test_create_registration_already_exists(self):
         topic = 'test'
         container = 'some_container'
-        models.Registration(topic=topic, container=container, creator=RegistrationTest.test_user).save()
+        models.Registration(topic=topic,
+                            container=container,
+                            creator=RegistrationTest.test_user).save()
         response = test_app.post_json('/registration', {
             'topic': topic,
             'container': container
@@ -65,7 +76,9 @@ class RegistrationTest(unittest.TestCase):
         topic = 'test'
         container = 'some_container'
         diff_container = 'some_other_container'
-        models.Registration(topic=topic, container=container, creator=RegistrationTest.test_user).save()
+        models.Registration(topic=topic,
+                            container=container,
+                            creator=RegistrationTest.test_user).save()
         response = test_app.post_json('/registration', {
             'topic': topic,
             'container': diff_container
@@ -78,24 +91,33 @@ class RegistrationTest(unittest.TestCase):
         self.assertEquals(from_db.container, diff_container)
 
     def test_get_all_registrations(self):
-        models.Registration(topic='topic', container='container', creator=RegistrationTest.test_user).save()
-        models.Registration(topic='topic', container='container2', creator=RegistrationTest.test_user).save()
+        models.Registration(topic='topic',
+                            container='container',
+                            creator=RegistrationTest.test_user).save()
+        models.Registration(topic='topic',
+                            container='container2',
+                            creator=RegistrationTest.test_user).save()
 
-        response = test_app.get('/registration', headers=RegistrationTest.auth_header)
+        response = test_app.get('/registration',
+                                headers=RegistrationTest.auth_header)
 
         self.assertEquals(response.status_int, 200)
         self.assertEquals(len(response.json['results']), 2)
 
     def test_get_all_registrations_empty(self):
-        response = test_app.get('/registration', headers=RegistrationTest.auth_header)
+        response = test_app.get('/registration',
+                                headers=RegistrationTest.auth_header)
 
         self.assertEquals(response.status_int, 200)
         self.assertEquals(len(response.json['results']), 0)
 
     def test_delete_registration(self):
-        models.Registration(topic='topic', container='container', creator=RegistrationTest.test_user).save()
+        models.Registration(topic='topic',
+                            container='container',
+                            creator=RegistrationTest.test_user).save()
 
-        response = test_app.delete('/registration/1', headers=RegistrationTest.auth_header)
+        response = test_app.delete('/registration/1',
+                                   headers=RegistrationTest.auth_header)
 
         self.assertEquals(response.status_int, 200)
         self.assertEquals(response.json['id'], 1)
@@ -108,33 +130,50 @@ class RegistrationTest(unittest.TestCase):
         self.assertTrue(had_exception)
 
     def test_delete_does_not_exist(self):
-        response = test_app.delete('/registration/1', expect_errors=True, headers=RegistrationTest.auth_header)
+        response = test_app.delete('/registration/1',
+                                   expect_errors=True,
+                                   headers=RegistrationTest.auth_header)
         self.assertEquals(response.status_int, 404)
 
     def test_get_registration(self):
-        models.Registration(topic='topic', container='container', creator=RegistrationTest.test_user).save()
-        response = test_app.get('/registration/1', headers=RegistrationTest.auth_header)
+        models.Registration(topic='topic',
+                            container='container',
+                            creator=RegistrationTest.test_user).save()
+        response = test_app.get('/registration/1',
+                                headers=RegistrationTest.auth_header)
         self.assertEquals(response.status_int, 200)
         self.assertEquals(response.json['id'], 1)
 
     def test_get_registration_missing(self):
-        response = test_app.get('/registration/1', expect_errors=True, headers=RegistrationTest.auth_header)
+        response = test_app.get('/registration/1',
+                                expect_errors=True,
+                                headers=RegistrationTest.auth_header)
         self.assertEquals(response.status_int, 404)
 
     def test_get_registrations_for_user(self):
         admin_user = models.User.get(models.User.id == 'admin')
-        models.Registration(topic='topic', container='user_container', creator=RegistrationTest.test_user).save()
-        models.Registration(topic='topic', container='admin_container', creator=admin_user).save()
+        models.Registration(topic='topic',
+                            container='user_container',
+                            creator=RegistrationTest.test_user).save()
+        models.Registration(topic='topic',
+                            container='admin_container',
+                            creator=admin_user).save()
 
-        response = test_app.get('/registration', headers=RegistrationTest.auth_header, params={'creator': 'admin'})
+        response = test_app.get('/registration',
+                                headers=RegistrationTest.auth_header,
+                                params={'creator': 'admin'})
         self.assertEquals(len(response.json['results']), 1)
         self.assertEquals(response.json['results'][0]['creator'], 'admin')
-        self.assertEquals(response.json['results'][0]['container'], 'admin_container')
+        self.assertEquals(response.json['results'][0]['container'],
+                          'admin_container')
 
-        response = test_app.get('/registration', headers=RegistrationTest.auth_header, params={'creator': 'user'})
+        response = test_app.get('/registration',
+                                headers=RegistrationTest.auth_header,
+                                params={'creator': 'user'})
         self.assertEquals(len(response.json['results']), 1)
         self.assertEquals(response.json['results'][0]['creator'], 'user')
-        self.assertEquals(response.json['results'][0]['container'], 'user_container')
+        self.assertEquals(response.json['results'][0]['container'],
+                          'user_container')
 
 if __name__ == '__main__':
     unittest.main()

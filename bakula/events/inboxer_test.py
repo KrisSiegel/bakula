@@ -59,7 +59,9 @@ class InboxerTest(unittest.TestCase):
             os.utime(testfile, None)
 
         counter = inboxer.add_file_by_path("MyTopic", testfile)
-        master_inbox_destination = os.path.join(master_inbox_path, "MyTopic", str(counter))
+        master_inbox_destination = os.path.join(master_inbox_path,
+                                                "MyTopic",
+                                                str(counter))
         self.assertEqual(os.path.exists(testfile), False)
         self.assertEqual(os.path.exists(master_inbox_destination), True)
 
@@ -70,8 +72,11 @@ class InboxerTest(unittest.TestCase):
         # Initialize inboxer using a tmp directory for unit testing
         inboxer = Inboxer(master_inbox_path, container_inboxes_path)
 
-        counter = inboxer.add_file_by_bytes("MyTopic", "This is a test file weeee")
-        master_inbox_destination = os.path.join(master_inbox_path, "MyTopic", str(counter))
+        counter = inboxer.add_file_by_bytes("MyTopic",
+                                            "This is a test file weeee")
+        master_inbox_destination = os.path.join(master_inbox_path,
+                                                "MyTopic",
+                                                str(counter))
         self.assertEqual(os.path.exists(master_inbox_destination), True)
 
     def test_get_inbox_list(self):
@@ -132,7 +137,10 @@ class InboxerTest(unittest.TestCase):
 
         self.assertEqual(len(inboxer.get_inbox_list("MyTopic3")), 1)
 
-        inboxer.promote_to_container_inbox("MyTopic3", ["Container1", "Container2", "Container3"])
+        inboxer.promote_to_container_inbox("MyTopic3",
+                                           ["Container1",
+                                            "Container2",
+                                            "Container3"])
 
         self.assertEqual(len(inboxer.get_inbox_list("MyTopic3")), 0)
 

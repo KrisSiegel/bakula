@@ -14,7 +14,8 @@
 #   KIND, either express or implied.  See the License for the
 #   specific language governing permissions and limitations
 #   under the License.
-from peewee import Proxy, Model, CharField, ForeignKeyField
+from peewee import (Proxy, Model, CharField, ForeignKeyField, IntegerField,
+                    BooleanField)
 from bakula.bottle import peeweeutils
 
 db = Proxy()
@@ -30,6 +31,9 @@ class User(BaseModel):
 class Registration(BaseModel):
     topic = CharField()
     container = CharField()
+    privileged = BooleanField(default=False)
+    threshold = IntegerField(default=0)
+    timeout = IntegerField(default=0)
     creator = ForeignKeyField(User)
 
     class Meta:

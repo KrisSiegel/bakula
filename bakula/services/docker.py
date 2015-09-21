@@ -14,11 +14,13 @@
 #   KIND, either express or implied.  See the License for the
 #   specific language governing permissions and limitations
 #   under the License.
+
 from bottle import Bottle, request
 from bakula.bottle import configuration
-from bakula.security import iam, tokenutils
-from bakula.security.tokenauthplugin import TokenAuthorizationPlugin
 from bakula.bottle.errorutils import create_error
+from bakula.security.tokenauthplugin import TokenAuthorizationPlugin
+import requests
+import urlparse
 
 app = Bottle()
 
@@ -29,30 +31,30 @@ token_secret = app.config.get('token_secret', 'password')
 auth_plugin = TokenAuthorizationPlugin(token_secret)
 app.install(auth_plugin)
 
-@app.post('/login', skip=[auth_plugin])
-def login():
-    id = request.json['id']
-    password = request.json['password']
+# Set up connection defaults
+auth = (app.config.get('registry.username'),
+        app.config.get('registry.password'))
+registry_host = app.config.get('registry.host', 'registry.immuta.com')
+protocol = app.config.get('registry.protocol', 'https')
+base_url = urlparse.urljoin('://'.join([protocol, registry_host]), 'v1/')
 
-    if iam.authenticate(id, password):
-        return {
-            'token': tokenutils.generate_auth_token(token_secret, id, 3600)
-        }
-    else:
-        return create_error(401, 'Invalid username or password')
+# Helper method for getting the image name from the docker registry response.
+# Prepends the registry hostname.
+#
+# Params:
+#    image: the image information returned from the Docker registry for a
+#           single image
+def get_image_name(image):
+    return '/'.join([registry_host, image['name']])
 
-@app.post('/user')
-def create_user(user):
-    if user == 'admin':
-        id = request.json['id']
-        password = request.json['password']
-
-        created = iam.create(id, password)
-        if created:
-            return {'id': id}
-        else:
-            return create_error(400,
-                                'A user already exists with id %s' %
-                                (id))
-    else:
-        return create_error(403, 'Only the admin user can create new users')
+@app.get('/images')
+def get_images():
+    params = {}
+    if 'query' in request.query:
+        params['q'] = request.query['query']
+    response = requests.get(urlparse.urljoin(base_url, 'search'),
+                            auth=auth,
+                            params=params)
+    response_obj = response.json()
+    image_names = map(get_image_name, response_obj['results'])
+    return {'images': image_names}

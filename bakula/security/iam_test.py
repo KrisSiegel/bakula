@@ -22,7 +22,8 @@ class ModelsTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        models.initialize_models({'sqlite_database': ':memory:', 'databaseType': 'sqlite'})
+        models.initialize_models({'database.name': ':memory:',
+                                  'database.type': 'sqlite'})
 
     def test_authenticate(self):
         authenticated = iam.authenticate('admin', 'secret')

@@ -25,7 +25,7 @@ class TokenAuthorizationPlugin(object):
             secret : the site secret used to verify tokens
     """
     name = 'token_authorization'
-    api  = 2
+    api = 2
 
     def __init__(self, secret):
         self.secret = secret
