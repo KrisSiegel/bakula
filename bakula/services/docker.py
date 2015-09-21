@@ -32,17 +32,18 @@ auth_plugin = TokenAuthorizationPlugin(token_secret)
 app.install(auth_plugin)
 
 # Set up connection defaults
-auth = (app.config.get('registry.username'), app.config.get('registry.password'))
+auth = (app.config.get('registry.username'),
+        app.config.get('registry.password'))
 registry_host = app.config.get('registry.host', 'registry.immuta.com')
 protocol = app.config.get('registry.protocol', 'https')
 base_url = urlparse.urljoin('://'.join([protocol, registry_host]), 'v1/')
 
-# Helper method for getting the image name from the docker registry response. Prepends
-# the registry hostname.
+# Helper method for getting the image name from the docker registry response.
+# Prepends the registry hostname.
 #
 # Params:
-#    image: the image information returned from the Docker registry for a single
-#           image
+#    image: the image information returned from the Docker registry for a
+#           single image
 def get_image_name(image):
     return '/'.join([registry_host, image['name']])
 
@@ -51,7 +52,9 @@ def get_images():
     params = {}
     if 'query' in request.query:
         params['q'] = request.query['query']
-    response = requests.get(urlparse.urljoin(base_url, 'search'), auth=auth, params=params)
+    response = requests.get(urlparse.urljoin(base_url, 'search'),
+                            auth=auth,
+                            params=params)
     response_obj = response.json()
     image_names = map(get_image_name, response_obj['results'])
     return {'images': image_names}

@@ -34,8 +34,8 @@ def generate_auth_token(secret, id, expiration_in_seconds=10):
     Returns:
         a string representing an encrypted dictionary
     """
-    s = Serializer(secret, expires_in = expiration_in_seconds)
-    return s.dumps({'id' : id})
+    s = Serializer(secret, expires_in=expiration_in_seconds)
+    return s.dumps({'id': id})
 
 def verify_token(secret, token):
     """Verify that a token is a valid

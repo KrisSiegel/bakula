@@ -45,7 +45,7 @@ def get_db_from_config(config, proxy=None):
     db_args = config.get('database')
     db_type = db_args.get('type', None)
     if db_type not in ['postgres', 'sqlite']:
-        raise RuntimeError("Bakula doesn't handle database %s"  % db_type)
+        raise RuntimeError("Bakula doesn't handle database %s" % db_type)
     del db_args['type']
 
     database_name = db_args.get('name')
@@ -69,10 +69,10 @@ def get_db_from_config(config, proxy=None):
 
 def unflatten(d):
     ret = defaultdict(dict)
-    for k,v in d.items():
-        k1,delim,k2 = k.partition('.')
+    for k, v in d.items():
+        k1, delim, k2 = k.partition('.')
         if delim:
-            ret[k1].update({k2:v})
+            ret[k1].update({k2: v})
         else:
             ret[k1] = v
     return ret

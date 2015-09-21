@@ -27,8 +27,11 @@ class UserTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        UserTest.test_token = tokenutils.generate_auth_token('password', 'admin', 60)
-        models.initialize_models({'database.name': ':memory:', 'database.type': 'sqlite'})
+        UserTest.test_token = tokenutils.generate_auth_token('password',
+                                                             'admin',
+                                                             60)
+        models.initialize_models({'database.name': ':memory:',
+                                  'database.type': 'sqlite'})
 
     def setUp(self):
         models.User.delete().execute()
@@ -55,7 +58,9 @@ class UserTest(unittest.TestCase):
         self.assertEquals(response.status_int, 400)
 
     def test_create_user_non_admin(self):
-        user_token = tokenutils.generate_auth_token('password', 'something_else', 60)
+        user_token = tokenutils.generate_auth_token('password',
+                                                    'something_else',
+                                                    60)
         response = test_app.post_json('/user', {
             'id': 'admin',
             'password': 'some_password'
