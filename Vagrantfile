@@ -12,14 +12,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.network :forwarded_port, guest: 5000, host: 5000
 
   # Install all the needed packages
-  config.vm.provision "shell", inline: "apt-get update"
-  config.vm.provision "shell", inline: "apt-get -y install python-pip python-dev libffi-dev"
-  config.vm.provision "shell", inline: "wget -qO- https://get.docker.com/ | sh"
-  config.vm.provision "shell", inline: "gpasswd -a vagrant docker"
-  config.vm.provision "shell", inline: "pip install -r /vagrant/requirements.txt"
-  config.vm.provision "shell", inline: "apt-get -y install nodejs npm"
-  config.vm.provision "shell", inline: "update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10"
-  config.vm.provision "shell", inline: "npm -g install bower"
-  config.vm.provision "shell", inline: "cd /vagrant/ui; bower install --allow-root --config.interactive=false;"
+  config.vm.provision :shell, privileged: true, inline: "apt-get update"
+  config.vm.provision :shell, privileged: true, inline: "apt-get -y install python-pip python-dev libffi-dev nodejs npm"
+  config.vm.provision :shell, privileged: true, inline: "update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10"
+  config.vm.provision :shell, privileged: true, inline: "wget -qO- https://get.docker.com/ | sh"
+  config.vm.provision :shell, privileged: true, inline: "gpasswd -a vagrant docker"
+  config.vm.provision :shell, privileged: true, inline: "chmod +w -R /usr/lib/python2.7/dist-packages/"
+  config.vm.provision :shell, privileged: true, inline: "pip install -r /vagrant/requirements.txt"
+  config.vm.provision :shell, privileged: true, inline: "npm -g install bower"
+  config.vm.provision :shell, privileged: false, inline: "cd /vagrant/ui; bower install --config.interactive=false;"
+  config.vm.network "forwarded_port", guest: 5000, host: 5000
 
 end
