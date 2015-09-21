@@ -31,7 +31,8 @@ class ModelsTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        peeweeutils.get_db_from_config({'database.name': ':memory:', 'database.type': 'sqlite'}, test_db)
+        peeweeutils.get_db_from_config({'database.name': ':memory:',
+                                        'database.type': 'sqlite'}, test_db)
         TestModel.create_table()
         obj = TestModel(name='test', message='this is a test model')
         obj.save()
@@ -41,14 +42,17 @@ class ModelsTest(unittest.TestCase):
         test_db.close()
 
     def test_resolve_query(self):
-        results = models.resolve_query(TestModel.select().where(TestModel.name == 'test'))
+        results = models.resolve_query(TestModel.select()
+                                       .where(TestModel.name == 'test'))
         self.assertIsInstance(results, list)
         self.assertEqual(len(results), 1)
-        self.assertIsInstance(results[0], dict) # Make sure this is a dict and not a TestModel
+        # Make sure this is a dict and not a TestModel
+        self.assertIsInstance(results[0], dict)
         self.assertEqual(results[0]['name'], 'test')
 
     def test_initialize_models(self):
-        models.initialize_models({'database.name': ':memory:', 'database.type': 'sqlite'})
+        models.initialize_models({'database.name': ':memory:',
+                                  'database.type': 'sqlite'})
         self.assertTrue(models.Registration.table_exists())
         self.assertTrue(models.User.table_exists())
 

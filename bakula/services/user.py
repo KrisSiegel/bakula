@@ -35,7 +35,9 @@ def login():
     password = request.json['password']
 
     if iam.authenticate(id, password):
-        return {'token': tokenutils.generate_auth_token(token_secret, id, 3600)}
+        return {
+            'token': tokenutils.generate_auth_token(token_secret, id, 3600)
+        }
     else:
         return create_error(401, 'Invalid username or password')
 
@@ -49,6 +51,8 @@ def create_user(user):
         if created:
             return {'id': id}
         else:
-            return create_error(400, 'A user already exists with id %s' % (id))
+            return create_error(400,
+                                'A user already exists with id %s' %
+                                (id))
     else:
         return create_error(403, 'Only the admin user can create new users')

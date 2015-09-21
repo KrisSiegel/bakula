@@ -22,12 +22,16 @@ from atomiclong import AtomicLong
 # create a hardlink to that file in the correct container inboxes path and then
 # delete the original file in the master inbox.
 class Inboxer:
-    # Initialize class with default paths to the master inbox and container inboxes
-    def __init__(self, master_inbox_path="master_inbox", container_inboxes_path="container_inboxes", atomic_counter=AtomicLong(0)):
+    # Initialize class with default paths to the master inbox and container
+    # inboxes
+    def __init__(self,
+                 master_inbox_path="master_inbox",
+                 container_inboxes_path="container_inboxes",
+                 atomic_counter=AtomicLong(0)):
         self.master_inbox_path = master_inbox_path
         self.container_inboxes_path = container_inboxes_path
         self.atomic_counter = atomic_counter
-        self.event_subscriptions = { }
+        self.event_subscriptions = {}
 
         if not os.path.exists(self.master_inbox_path):
             os.makedirs(self.master_inbox_path)
@@ -36,11 +40,13 @@ class Inboxer:
             os.makedirs(self.container_inboxes_path)
 
     def __trigger_event_subscription(self, event, data=None):
-        if event in self.event_subscriptions and self.event_subscriptions[event] is not None:
+        if (event in self.event_subscriptions and
+                self.event_subscriptions[event] is not None):
             self.event_subscriptions[event](data)
 
     # Registers a callback for a specific event
-    # Don't care to support multiple registrations per event. Right now at least.
+    # Don't care to support multiple registrations per event. Right now at
+    # least.
     def on(self, event, callback):
         self.event_subscriptions[event] = callback
 
@@ -53,7 +59,8 @@ class Inboxer:
         self.atomic_counter += 1
         counter = self.atomic_counter.value
 
-        # Move into the master inbox under the correct topic with an updated count
+        # Move into the master inbox under the correct topic with an updated
+        # count
         destination = os.path.join(master_topic_path, str(counter))
         if os.path.exists(file_path):
             try:
@@ -62,7 +69,7 @@ class Inboxer:
                 print "Writing to master inbox failed due to %s" % ex
                 return None
 
-        self.__trigger_event_subscription("received", { "topic": topic })
+        self.__trigger_event_subscription("received", {"topic": topic})
         return counter
 
     # Takes a topic and data and writes it to the master inbox
@@ -73,7 +80,8 @@ class Inboxer:
         self.atomic_counter += 1
         counter = self.atomic_counter.value
 
-        # Move into the master inbox under the correct topic with an updated count
+        # Move into the master inbox under the correct topic with an updated
+        # count
         destination = os.path.join(master_topic_path, str(counter))
         if not os.path.exists(destination):
             try:
@@ -83,10 +91,11 @@ class Inboxer:
                 print "Writing to master inbox failed due to %s" % ex
                 return None
 
-        self.__trigger_event_subscription("received", { "topic": topic })
+        self.__trigger_event_subscription("received", {"topic": topic})
         return counter
 
-    # Gets a listing of files currently in the master queue for the specified topic
+    # Gets a listing of files currently in the master queue for the specified
+    # topic
     def get_inbox_list(self, topic):
         master_topic_path = os.path.join(self.master_inbox_path, topic)
         result = []
@@ -97,23 +106,29 @@ class Inboxer:
 
         return result
 
-    # Promotes a file from the master inbox into a container inbox delineated by container id
+    # Promotes a file from the master inbox into a container inbox delineated
+    # by container id
     def promote_to_container_inbox(self, topic, containerids):
         promotees = self.get_inbox_list(topic)
         if len(promotees) > 0:
 
-            # Since we allow a single, string or an array of strings for the containerids
-            # parameter, let's make a variable that's always an array for our loop
-            normalized_containerids = containerids if not isinstance(containerids, basestring) else [containerids]
+            # Since we allow a single, string or an array of strings for the
+            # containerids parameter, let's make a variable that's always an
+            # array for our loop
+            isArray = not isinstance(containerids, basestring)
+            containerids = containerids if isArray else [containerids]
 
-            for containerid in normalized_containerids:
-                container_inbox_path = os.path.join(self.container_inboxes_path, containerid)
+            for containerid in containerids:
+                container_inbox_path = os.path.join(
+                    self.container_inboxes_path, containerid)
                 if not os.path.exists(container_inbox_path):
                     os.makedirs(container_inbox_path)
 
                 for fname in promotees:
                     try:
-                        fullpath = os.path.join(self.master_inbox_path, topic, fname)
+                        fullpath = os.path.join(self.master_inbox_path,
+                                                topic,
+                                                fname)
                         destination = os.path.join(container_inbox_path, fname)
                         os.link(fullpath, destination)
                     except Exception as ex:
@@ -125,9 +140,10 @@ class Inboxer:
                 if os.stat(fullpath).st_nlink > 0:
                     # Hard link created successfully; delete the original
                     try:
-                        os.remove(fullpath);
+                        os.remove(fullpath)
                     except Exception as ex:
-                        print "Deleting master inbox files after promotion failed due to %s" % ex
+                        print ("Deleting master inbox files after promotion"
+                               "failed due to %s") % ex
                         return None
                 else:
                     print "Failure creating hard link on %s" % fullpath

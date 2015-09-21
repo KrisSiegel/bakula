@@ -57,7 +57,7 @@ class EventHandler:
         event_key = event_json['event_key']
         key = self._get_key(event_type, event_key)
         print key
-        if not key in self.events_to_images:
+        if key not in self.events_to_images:
             return
         images = self.events_to_images[key]
         for image in images:
@@ -67,8 +67,9 @@ class EventHandler:
                 container_url = self._start_container(image)
             print "CONTAINER URL: %s" % container_url
             time.sleep(2)
-            headers = {'Content-Type' : 'application/json'}
-            requests.post(container_url, data=json.dumps(event_json), headers=headers)
+            headers = {'Content-Type': 'application/json'}
+            requests.post(container_url, data=json.dumps(event_json),
+                          headers=headers)
 
     def _get_key(self, event_type, event_key):
         return "%s_%s" % (event_type, event_key)
@@ -93,7 +94,7 @@ class EventHandler:
         file_name, file_extension = os.path.splitext(path)
         if file_extension == '.tar':
             compressed = tarfile.TarFile(name=path)
-        elif file_extension =='.zip':
+        elif file_extension == '.zip':
             compressed = zipfile.ZipFile(path)
         else:
             raise RuntimeError("Unrecogonized Extension")
@@ -102,5 +103,3 @@ class EventHandler:
         compressed.extractall(path=extraction_site)
 
         self._docker_agent.build_image(extraction_site, image_name)
-
-

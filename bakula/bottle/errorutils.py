@@ -38,13 +38,13 @@ def create_error(status_code=500, message=None, error=None):
     if not message:
         message = ''
 
-    error_dict = {'statusCode' : status_code,
-                  'error'      : error,
-                  'message'    : message
-                 }
+    error_dict = {'statusCode': status_code,
+                  'error': error,
+                  'message': message
+                  }
 
     ret_val = HTTPResponse(status=status_code,
-                           headers={'Content-Type' : 'applicaton/json'},
+                           headers={'Content-Type': 'applicaton/json'},
                            body=json.dumps(error_dict))
     return ret_val
 
@@ -70,5 +70,3 @@ def check_missing_json_fields(json_obj, required_fields):
                      "required but missing %s") % ','.join(missing_fields)
         ret_val = create_error(status=400, message=error_msg)
     return ret_val
-
-

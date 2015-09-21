@@ -32,12 +32,12 @@ def post_event():
     topic = request.forms.get("topic")
     successfully_queued = []
     # Bottle default way of accessing files doesn't seem to like multiple files
-    # which use the same form name (which is standard practice). So let's access
-    # them manually. Muwhahahahaha.
+    # which use the same form name (which is standard practice). So let's
+    # access them manually. Muwhahahahaha.
     for name, item in request.POST.allitems():
         if isinstance(item, FileUpload):
             inbox.add_file_by_bytes(topic, item.file.read())
             successfully_queued.append(item.filename)
             response.status = 201
 
-    return { "results": successfully_queued }
+    return {"results": successfully_queued}
