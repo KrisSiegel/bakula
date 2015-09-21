@@ -19,12 +19,23 @@ import unittest
 import os
 import shutil
 from inboxer import Inboxer
+from bakula import models
+from bakula.models import Registration
 from orchestrator import Orchestrator
-
 class OrchestratorTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        models.initialize_models({'database.name': ':memory:',
+                                  'database.type': 'sqlite'})
 
     def setUp(self):
-        pass
+        models.Registration.delete().execute()
+        reg = Registration(**{
+            "topic": "MyTopic",
+            "container": "MyContainer",
+            "creator": "me"
+        })
+        reg.save()
 
     def tearDown(self):
         shutil.rmtree(".tmp", ignore_errors=True)
