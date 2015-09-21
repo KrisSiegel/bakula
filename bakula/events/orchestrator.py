@@ -72,4 +72,6 @@ class Orchestrator:
                         username=registry_username,
                         password=registry_password
                     )
-                    agent.start_container(host_inbox=container_inbox, image_name=container_info["container"])
+                    image_name = "%s/%s" % (registry_host, container_info['container'])
+                    agent.pull(image_name)
+                    agent.start_container(host_inbox=container_inbox, image_name=image_name)

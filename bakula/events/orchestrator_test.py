@@ -32,7 +32,7 @@ class OrchestratorTest(unittest.TestCase):
         models.Registration.delete().execute()
         reg = Registration(**{
             "topic": "MyTopic",
-            "container": "MyContainer",
+            "container": "gdelt-blob-store-handler",
             "creator": "me"
         })
         reg.save()
