@@ -59,6 +59,10 @@ class Orchestrator:
 
             container_inboxes = self.inboxer.promote_to_container_inbox(data["topic"], str(uuid.uuid4()))
 
+            if container_inboxes is None or len(container_inboxes) == 0:
+                print "There are no container inboxes available for the event run; did something weird happen?"
+                return None
+
             for container_inbox in container_inboxes:
                 for container_info in container_infos:
                     # container_inbox is the path inboxer promoted to be mounted in the docker container
