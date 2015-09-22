@@ -14,6 +14,7 @@ from bottle import Bottle, HTTPResponse, request, response, FileUpload
 
 from bakula.bottle import configuration
 from bakula.bottle.errorutils import create_error
+from bakula.docker.dockeragent import DockerAgent
 from bakula.events.inboxer import Inboxer
 from bakula.events.orchestrator import Orchestrator
 from atomiclong import AtomicLong
@@ -24,11 +25,11 @@ configuration.bootstrap_app_config(app)
 
 count = AtomicLong(0)
 inbox = Inboxer(atomic_counter=count)
+docker_agent = DockerAgent(registry_host=app.config.get("registry.host", None),
+   username=app.config.get("registry.username", None),
+   password=app.config.get("registry.password", None))
 
-orchestrator = Orchestrator(inboxer=inbox,
-    registry_host=app.config.get("registry.host", None),
-    registry_username=app.config.get("registry.username", None),
-    registry_password=app.config.get("registry.password", None))
+orchestrator = Orchestrator(inboxer=inbox,docker_agent=docker_agent)
 
 # Accepts a multipart form
 # Field 'topic' -> The topic for the attached file(s)

@@ -23,18 +23,16 @@ import uuid
 # it promotes the appropriate files as an inbox or a docker container then fires the
 # docker container.
 class Orchestrator:
-    def __init__(self, inboxer=Inboxer(), registry_host=None,
-		 registry_username=None, registry_password=None):
+    def __init__(self, inboxer=Inboxer(), docker_agent=None):
          self.inboxer = inboxer
-         self.registry_host = registry_host
-         self.registry_username = registry_username
-         self.registry_password = registry_password
          self.inboxer.on("received", self.__handle_inbox_received_event)
+         self.docker_agent = docker_agent
+         if self.docker_agent is None:
+             self.docker_agent = DockerAgent()
 
     # Get listing of registered containers filtered by topic
     def __get_registered_containers(self, topic):
-        query = Registration.select().where(Registration.topic == topic)
-        return resolve_query(query)
+        return Registration.select().where(Registration.topic == topic)
 
     # This event handler is executed every time a file is put into the master inbox
     # The data argument includes a property specify the topic that was appended to
@@ -62,12 +60,6 @@ class Orchestrator:
                 for container_info in container_infos:
                     # container_inbox is the path inboxer promoted to be mounted in the docker container
                     # container_info is the result from the database that specifies the container name to execute
-                    agent = DockerAgent(
-                        registry_host=self.registry_host,
-                        username=self.registry_username,
-                        password=self.registry_password
-                    )
-
-                    image_name = container_info['container']
-                    agent.pull(image_name)
-                    agent.start_container(host_inbox=container_inbox, image_name=image_name)
+                    image_name = container_info.container
+                    self.docker_agent.pull(image_name)
+                    self.docker_agent.start_container(host_inbox=container_inbox, image_name=image_name)
