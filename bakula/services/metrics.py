@@ -59,10 +59,15 @@ def get_metrics(registration_id):
         datetime.date.today() + datetime.timedelta(days=1),
         datetime.time.min
     ).timetuple() * 1000)
+
+    # Get the starting point (one week ago)
+    one_week_ago = tomorrow - (7 * MILLISECONDS_IN_DAY)
     events = Event.select(
         fn.ROUND(Event.timestamp/MILLISECONDS_IN_DAY)*MILLISECONDS_IN_DAY,
         fn.AVG(Event.duration).alias('avgDuration')
     ).where(
         Event.topic == registration.topic,
-        Event.container == registration.container
+        Event.container == registration.container,
+        Event.timestamp < tomorrow,
+        Event.timestamp >= one_week_ago
     ).group_by('avgDuration')
