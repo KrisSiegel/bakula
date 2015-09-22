@@ -16,10 +16,10 @@
 #   under the License.
 from bakula.events.inboxer import Inboxer
 from bakula.docker.dockeragent import DockerAgent
-from threading import Timer
+from threading import Thread
 from bakula.models import Registration, resolve_query
 from calendar import timegm
-from time import gmtime
+from time import gmtime, sleep
 from uuid import uuid4
 
 TIMER_INTERVAL = 10.0
@@ -37,7 +37,9 @@ class Orchestrator:
 
         # Setup pending queue
         self.pending = { }
-        self.__process_pending()
+        self.pending_thread = Thread(target=self.__process_pending)
+        self.pending_thread.daemon = True
+        self.pending_thread.start()
 
     # Get listing of registered containers filtered by topic
     def __get_registered_containers(self, topic):
@@ -52,13 +54,16 @@ class Orchestrator:
     # Iterate through the self.pending queue and act on anything queued
     # that has passed its timer
     def __process_pending(self):
-        for topic in self.pending:
-            for container in self.pending[topic]:
-                if self.__get_current_time_in_seconds() > self.pending[topic][container]:
-                    # It's go time!
-                    self.__process(topic, container)
-        self.interval_timer = Timer(TIMER_INTERVAL, self.__process_pending)
-        self.interval_timer.start()
+        while (True):
+            for topic in self.pending:
+                for container in self.pending[topic]:
+                    if self.__get_current_time_in_seconds() > self.pending[topic][container]:
+                        # It's go time!
+                        self.__process(topic, container)
+            try:
+                sleep(TIMER_INTERVAL)
+            except KeyboardInterrupt:
+                self.pending_thread.stop()
 
     def __process(self, topic, container_name):
         self.__clear_pending(topic, container_name) # Clear the topic so this isn't hit multiple times
