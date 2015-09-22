@@ -34,7 +34,7 @@ class Orchestrator:
              self.docker_agent = DockerAgent()
 
     # Clean up the id_to_cpu dict
-    def __clean_container(id):
+    def __clean_container(self, id):
         if id in self.id_to_cpu:
             del self.id_to_cpu[id]
 

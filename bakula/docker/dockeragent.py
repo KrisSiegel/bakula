@@ -116,7 +116,7 @@ class DockerAgent(object):
         stats = self._docker_client.stats(container_id, decode=True)
         thread = threading.Thread(
             target=self._process_stats,
-            args=(stats, stat_processor)
+            args=(container_id, topic, container_name, stats, stat_processor)
         )
         thread.daemon = True
         thread.start()
