@@ -18,23 +18,26 @@
 import unittest
 import os
 import shutil
+import tempfile
 from inboxer import Inboxer
 
 class InboxerTest(unittest.TestCase):
+
+    TEST_DIR = os.path.join(tempfile.gettempdir(), 'inboxer_test')
 
     def setUp(self):
         pass
 
     def tearDown(self):
-        shutil.rmtree(".tmp", ignore_errors=True)
+        shutil.rmtree(self.TEST_DIR, ignore_errors=True)
 
     def test_on(self):
         def callback(data):
             self.assertEqual(data["topic"], "MyTopicEvent")
 
-        master_inbox_path = os.path.join(".tmp", "master_inbox")
-        container_inboxes_path = os.path.join(".tmp", "container_inboxes")
-        testfile = os.path.join(".tmp", "testFile.json")
+        master_inbox_path = os.path.join(self.TEST_DIR, "master_inbox")
+        container_inboxes_path = os.path.join(self.TEST_DIR, "container_inboxes")
+        testfile = os.path.join(self.TEST_DIR, "testFile.json")
 
         # Initialize inboxer using a tmp directory for unit testing
         inboxer = Inboxer(master_inbox_path, container_inboxes_path)
@@ -47,9 +50,9 @@ class InboxerTest(unittest.TestCase):
         counter = inboxer.add_file_by_path("MyTopicEvent", testfile)
 
     def test_add_file_by_path(self):
-        master_inbox_path = os.path.join(".tmp", "master_inbox")
-        container_inboxes_path = os.path.join(".tmp", "container_inboxes")
-        testfile = os.path.join(".tmp", "testFile.json")
+        master_inbox_path = os.path.join(self.TEST_DIR, "master_inbox")
+        container_inboxes_path = os.path.join(self.TEST_DIR, "container_inboxes")
+        testfile = os.path.join(self.TEST_DIR, "testFile.json")
 
         # Initialize inboxer using a tmp directory for unit testing
         inboxer = Inboxer(master_inbox_path, container_inboxes_path)
@@ -66,8 +69,8 @@ class InboxerTest(unittest.TestCase):
         self.assertEqual(os.path.exists(master_inbox_destination), True)
 
     def test_add_file_by_bytes(self):
-        master_inbox_path = os.path.join(".tmp", "master_inbox")
-        container_inboxes_path = os.path.join(".tmp", "container_inboxes")
+        master_inbox_path = os.path.join(self.TEST_DIR, "master_inbox")
+        container_inboxes_path = os.path.join(self.TEST_DIR, "container_inboxes")
 
         # Initialize inboxer using a tmp directory for unit testing
         inboxer = Inboxer(master_inbox_path, container_inboxes_path)
@@ -80,11 +83,11 @@ class InboxerTest(unittest.TestCase):
         self.assertEqual(os.path.exists(master_inbox_destination), True)
 
     def test_get_inbox_list(self):
-        master_inbox_path = os.path.join(".tmp", "master_inbox")
-        container_inboxes_path = os.path.join(".tmp", "container_inboxes")
-        testfile1 = os.path.join(".tmp", "testFile1.json")
-        testfile2 = os.path.join(".tmp", "testFile2.json")
-        testfile3 = os.path.join(".tmp", "testFile3.json")
+        master_inbox_path = os.path.join(self.TEST_DIR, "master_inbox")
+        container_inboxes_path = os.path.join(self.TEST_DIR, "container_inboxes")
+        testfile1 = os.path.join(self.TEST_DIR, "testFile1.json")
+        testfile2 = os.path.join(self.TEST_DIR, "testFile2.json")
+        testfile3 = os.path.join(self.TEST_DIR, "testFile3.json")
 
         # Initialize inboxer using a tmp directory for unit testing
         inboxer = Inboxer(master_inbox_path, container_inboxes_path)
@@ -106,11 +109,11 @@ class InboxerTest(unittest.TestCase):
         self.assertEqual(len(inboxer.get_inbox_list("MyTopic")), 3)
 
     def test_promote_to_container_inbox(self):
-        master_inbox_path = os.path.join(".tmp", "master_inbox")
-        container_inboxes_path = os.path.join(".tmp", "container_inboxes")
-        testfile1 = os.path.join(".tmp", "testFile1.json")
-        testfile2 = os.path.join(".tmp", "testFile2.json")
-        testfile3 = os.path.join(".tmp", "testFile3.json")
+        master_inbox_path = os.path.join(self.TEST_DIR, "master_inbox")
+        container_inboxes_path = os.path.join(self.TEST_DIR, "container_inboxes")
+        testfile1 = os.path.join(self.TEST_DIR, "testFile1.json")
+        testfile2 = os.path.join(self.TEST_DIR, "testFile2.json")
+        testfile3 = os.path.join(self.TEST_DIR, "testFile3.json")
 
         # Initialize inboxer using a tmp directory for unit testing
         inboxer = Inboxer(master_inbox_path, container_inboxes_path)
