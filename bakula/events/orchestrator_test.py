@@ -35,7 +35,7 @@ class OrchestratorTest(unittest.TestCase):
                                   'database.type': 'sqlite'})
 
     def setUp(self):
-        models.Registration.delete().execute()
+        Registration.delete().execute()
         reg = Registration(**{
             "topic": "MyTopic",
             "container": "busybox",
