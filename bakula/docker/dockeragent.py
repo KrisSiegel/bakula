@@ -33,7 +33,6 @@ class DockerAgent(object):
 
         self._containers = {}
         self._name_dict = {}
-        self.registry_host = registry_host
         self._docker_client = docker.Client(base_url=docker_base_url,
                                             tls=tls_config)
 
@@ -51,8 +50,6 @@ class DockerAgent(object):
         build_generator = self._docker_client.build(path=path, tag=image_name)
 
     def pull(self, image_name, tag=None):
-        if self.registry_host:
-            image_name = "%s/%s" % (self.registry_host, image_name)
         return self._docker_client.pull(image_name, tag=tag)
 
     def check_if_image_exists(self, image_name):
@@ -71,9 +68,6 @@ class DockerAgent(object):
                         run_privileged=False,
                         command=None):
 
-
-        if self.registry_host:
-            image_name = "%s/%s" % (self.registry_host, image_name)
 
         container_name = self._create_container_name(image_name)
 
