@@ -18,11 +18,17 @@
 import unittest
 import os
 import shutil
+import tempfile
+
 from inboxer import Inboxer
 from bakula import models
 from bakula.models import Registration
 from orchestrator import Orchestrator
+
 class OrchestratorTest(unittest.TestCase):
+
+    TEST_DIR = os.path.join(tempfile.gettempdir(), 'orchestrator_test')
+
     @classmethod
     def setUpClass(self):
         models.initialize_models({'database.name': ':memory:',
@@ -32,7 +38,7 @@ class OrchestratorTest(unittest.TestCase):
         models.Registration.delete().execute()
         reg = Registration(**{
             "topic": "MyTopic",
-            "container": "gdelt-blob-store-handler",
+            "container": "busybox",
             "creator": "me"
         })
         reg.save()
@@ -41,7 +47,8 @@ class OrchestratorTest(unittest.TestCase):
         shutil.rmtree(".tmp", ignore_errors=True)
 
     def test_Orchestrator(self):
-        inboxer = Inboxer(os.path.join(".tmp", "master_inbox"), os.path.join(".tmp", "container_inboxes"))
+        inboxer = Inboxer(os.path.join(self.TEST_DIR, "master_inbox"),
+                          os.path.join(self.TEST_DIR, "container_inboxes"))
         orchestrator = Orchestrator(inboxer)
         inboxer.add_file_by_bytes("MyTopic", "This is some data")
         self.assertEqual(len(inboxer.get_inbox_list("MyTopic")), 0)
