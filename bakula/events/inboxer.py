@@ -31,7 +31,8 @@ class Inboxer:
         self.master_inbox_path = master_inbox_path
         self.container_inboxes_path = container_inboxes_path
         self.atomic_counter = atomic_counter
-        self.event_subscriptions = {}
+        self.event_subscriptions = {} # Keep callbacks for events subscribed to
+        self.countCache = {} # Keep a cache of file counts; faster than recounting
 
         if not os.path.exists(self.master_inbox_path):
             os.makedirs(self.master_inbox_path)
@@ -39,10 +40,34 @@ class Inboxer:
         if not os.path.exists(self.container_inboxes_path):
             os.makedirs(self.container_inboxes_path)
 
+    # This method is called to trigger an event
     def __trigger_event_subscription(self, event, data=None):
         if (event in self.event_subscriptions and
                 self.event_subscriptions[event] is not None):
             self.event_subscriptions[event](data)
+
+    def __get_file_count(self, topic):
+        master_topic_path = os.path.join(self.master_inbox_path, topic)
+        count = 0
+        if os.path.exists(master_topic_path):
+            for dirname, subdirs, files in os.walk(master_topic_path):
+                for fname in files:
+                    count = count + 1
+
+        return count
+
+    # Get a count from the cache count
+    def __get_count_cache(self, topic):
+        if topic not in self.countCache:
+            self.countCache[topic] = __get_file_count(topic)
+        return self.countCache[topic]
+
+    # Update the count cache
+    def __update_count_cache(self, topic, count=None):
+        if count is None:
+            self.countCache[topic] = self.__get_file_count(topic)
+        else:
+            self.countCache[topic] = count
 
     # Registers a callback for a specific event
     # Don't care to support multiple registrations per event. Right now at
@@ -69,6 +94,7 @@ class Inboxer:
                 print "Writing to master inbox failed due to %s" % ex
                 return None
 
+        self.__update_count_cache(topic)
         self.__trigger_event_subscription("received", {"topic": topic})
         return counter
 
@@ -91,6 +117,7 @@ class Inboxer:
                 print "Writing to master inbox failed due to %s" % ex
                 return None
 
+        self.__update_count_cache(topic)
         self.__trigger_event_subscription("received", {"topic": topic})
         return counter
 
@@ -105,6 +132,10 @@ class Inboxer:
                     result.append(fname)
 
         return result
+
+    # Get a count of files in the master inbox for a specific topic
+    def get_inbox_count(self, topic):
+        return self.__get_count_cache(topic)
 
     # Promotes a file from the master inbox into a container inbox delineated
     # by container id
@@ -150,4 +181,5 @@ class Inboxer:
                 else:
                     print "Failure creating hard link on %s" % fullpath
 
+            self.__update_count_cache(topic)
             return container_inboxes
