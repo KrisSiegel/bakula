@@ -42,6 +42,13 @@ class Registration(BaseModel):
             (('topic', 'container'), True),
         )
 
+class Metric(BaseModel):
+    topic = CharField()
+    container = CharField()
+    timestamp = IntegerField()
+    name = CharField()
+    value = IntegerField()
+
 # Helper method for resolving a SelectQuery into the underlying dict objects.
 # Useful for building response objects.
 #
@@ -66,6 +73,7 @@ def initialize_models(config):
     # already exist)
     User.create_table(True)
     Registration.create_table(True)
+    Metric.create_table(True)
 
     # The first user in the DB will be the admin user. Ignore errors.
     from bakula.security import iam
