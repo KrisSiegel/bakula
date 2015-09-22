@@ -44,7 +44,7 @@ class OrchestratorTest(unittest.TestCase):
         reg.save()
 
     def tearDown(self):
-        shutil.rmtree(".tmp", ignore_errors=True)
+        shutil.rmtree(self.TEST_DIR, ignore_errors=True)
 
     def test_Orchestrator(self):
         inboxer = Inboxer(os.path.join(self.TEST_DIR, "master_inbox"),
