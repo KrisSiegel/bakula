@@ -25,7 +25,10 @@ configuration.bootstrap_app_config(app)
 count = AtomicLong(0)
 inbox = Inboxer(atomic_counter=count)
 
-orchestrator = Orchestrator(inboxer=inbox)
+orchestrator = Orchestrator(inboxer=inbox,
+    registry_host=app.config.get("registry.host", None),
+    registry_username=app.config.get("registry.username", None),
+    registry_password=app.config.get("registry.password", None))
 
 # Accepts a multipart form
 # Field 'topic' -> The topic for the attached file(s)

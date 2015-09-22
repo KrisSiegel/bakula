@@ -30,12 +30,11 @@ configuration.bootstrap_app_config(app)
 class Orchestrator:
     def __init__(self, inboxer=Inboxer(), registry_host=None,
 		 registry_username=None, registry_password=None):
-
-        self.inboxer = inboxer
-	self.registry_host = registry_host
-	self.registry_username = registry_username
-	self.registry_password = registry_password
-        self.inboxer.on("received", self.__handle_inbox_received_event)
+         self.inboxer = inboxer
+         self.registry_host = registry_host
+         self.registry_username = registry_username
+         self.registry_password = registry_password
+         self.inboxer.on("received", self.__handle_inbox_received_event)
 
     # Get listing of registered containers filtered by topic
     def __get_registered_containers(self, topic):
