@@ -41,6 +41,7 @@ class DockerAgent(object):
 
         self._monitor_interval = monitor_interval
         self._name_dict = {}
+        self._terminate_callbacks = {}
         self._docker_client = docker.Client(base_url=docker_base_url,
                                             tls=tls_config,
                                             timeout=docker_timeout)
@@ -70,6 +71,9 @@ class DockerAgent(object):
                 if (image in self._name_dict and
                         name in self._name_dict[image]):
                     update_indices = True
+                    if id in self._terminate_callbacks:
+                        self._terminate_callbacks[id](id)
+                        del self._terminate_callbacks[id]
                     self._docker_client.remove_container(id)
             if update_indices:
                 self._update_container_indexes()
@@ -90,16 +94,25 @@ class DockerAgent(object):
                 return True
         return False
 
-    def _process_stats(self, stat_generator, stat_processor):
+    def _process_stats(self,
+                       container_id,
+                       topic,
+                       container_name,
+                       stat_generator,
+                       stat_processor):
         try:
             for stat in stat_generator:
-                stat_processor(stat)
+                stat_processor(stat, container_id, topic, container_name)
         except exceptions.ReadTimeoutError:
             # When the container is terminated, the connection stays open
             # briefly before timing out. Nothing to do here.
             pass
 
-    def stats(self, container_id, stat_processor):
+    def stats(self,
+              container_id,
+              topic,
+              container_name,
+              stat_processor):
         stats = self._docker_client.stats(container_id, decode=True)
         thread = threading.Thread(
             target=self._process_stats,
@@ -113,7 +126,8 @@ class DockerAgent(object):
                         host_inbox,
                         ports=None,
                         run_privileged=False,
-                        command=None):
+                        command=None,
+                        on_terminate=None):
         container_name = self._create_container_name(image_name)
 
         # Create inbox volume for container
@@ -134,6 +148,8 @@ class DockerAgent(object):
         )
         container_id = container['Id']
         res = self._docker_client.start(container['Id'])
+        if on_terminate is not None:
+            self._terminate_callbacks[container_id] = on_terminate
         # Make sure our dictionary is fresh
         self._update_container_indexes()
         return container_id

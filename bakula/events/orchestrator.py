@@ -16,7 +16,9 @@
 #   under the License.
 from bakula.events.inboxer import Inboxer
 from bakula.docker.dockeragent import DockerAgent
-from bakula.models import Registration, resolve_query
+from bakula.models import Registration, Metric
+from dateutil import parser
+import time
 import uuid
 
 # This class handles the event handling of the inboxer and, when a threshold is hit,
@@ -27,8 +29,49 @@ class Orchestrator:
          self.inboxer = inboxer
          self.inboxer.on("received", self.__handle_inbox_received_event)
          self.docker_agent = docker_agent
+         self.id_to_cpu = {}
          if self.docker_agent is None:
              self.docker_agent = DockerAgent()
+
+    # Clean up the id_to_cpu dict
+    def __clean_container(id):
+        if id in self.id_to_cpu:
+            del self.id_to_cpu[id]
+
+    # Save stat to database
+    def __handle_stat(self, stat, id, topic, container_name):
+        read_dt = parser.parse(stat['read'])
+        timestamp = int((time.mktime(read_dt.timetuple()) + (read_dt.microsecond/1000000.0)) * 1000)
+        memory_usage = float(stat['memory_stats']['usage'])/float(stat['memory_stats']['limit'])
+        Metric.create(
+            topic=topic,
+            container=container_name,
+            timestamp=timestamp,
+            name='memory',
+            value=memory_usage
+        )
+
+        # Calculate CPU usage. The docker API returns the number of cycles consumed
+        # by the container and the number of cycles consumed by the system. We need
+        # to take the difference over time and divide them to retrieve the usage
+        # percentage.
+        total_usage = float(stat['cpu_stats']['cpu_usage']['total_usage'])
+        system_usage = float(stat['cpu_stats']['system_cpu_usage'])
+        if id in self.id_to_cpu:
+            usage_diff = total_usage - self.id_to_cpu[id]['total']
+            system_diff = system_usage - self.id_to_cpu[id]['system']
+            usage_pct = usage_diff/system_diff
+            Metric.create(
+                topic=topic,
+                container=container_name,
+                timestamp=timestamp,
+                name='cpu',
+                value=usage_pct
+            )
+        self.id_to_cpu[id] = {
+            'total': total_usage,
+            'system': system_usage
+        }
 
     # Get listing of registered containers filtered by topic
     def __get_registered_containers(self, topic):
@@ -62,4 +105,14 @@ class Orchestrator:
                     # container_info is the result from the database that specifies the container name to execute
                     image_name = container_info.container
                     self.docker_agent.pull(image_name)
-                    self.docker_agent.start_container(host_inbox=container_inbox, image_name=image_name)
+                    container_id = self.docker_agent.start_container(
+                        host_inbox=container_inbox,
+                        image_name=image_name,
+                        on_terminate=self.__clean_container
+                    )
+                    self.docker_agent.stats(
+                        container_id,
+                        data["topic"],
+                        image_name,
+                        self.__handle_stat
+                    )

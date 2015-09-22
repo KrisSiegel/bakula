@@ -55,10 +55,11 @@ def get_metrics(registration_id):
 
     # Use the beginning of the day tomorrow as a starting point (for full
     # days)
-    tomorrow = int(datetime.datetime.combine(
+    tomorrow_dt = datetime.datetime.combine(
         datetime.date.today() + datetime.timedelta(days=1),
         datetime.time.min
-    ).timetuple() * 1000)
+    )
+    tomorrow = int(time.mktime(tomorrow_dt.timetuple()) * 1000)
 
     # Get the starting point (one week ago)
     one_week_ago = tomorrow - (7 * MILLISECONDS_IN_DAY)
