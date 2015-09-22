@@ -49,6 +49,12 @@ class Metric(BaseModel):
     name = CharField()
     value = IntegerField()
 
+class Event(BaseModel):
+    topic = CharField()
+    container = CharField()
+    timestamp = IntegerField()
+    duration = IntegerField()
+
 # Helper method for resolving a SelectQuery into the underlying dict objects.
 # Useful for building response objects.
 #
