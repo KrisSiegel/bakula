@@ -24,16 +24,17 @@ import uuid
 app = Bottle()
 configuration.bootstrap_app_config(app)
 
-registry_host = app.config.get("registry.host")
-registry_username = app.config.get("registry.username")
-registry_password = app.config.get("registry.password")
-
 # This class handles the event handling of the inboxer and, when a threshold is hit,
 # it promotes the appropriate files as an inbox or a docker container then fires the
 # docker container.
 class Orchestrator:
-    def __init__(self, inboxer=Inboxer()):
+    def __init__(self, inboxer=Inboxer(), registry_host=None,
+		 registry_username=None, registry_password=None):
+
         self.inboxer = inboxer
+	self.registry_host = registry_host
+	self.registry_username = registry_username
+	self.registry_password = registry_password
         self.inboxer.on("received", self.__handle_inbox_received_event)
 
     # Get listing of registered containers filtered by topic
@@ -68,10 +69,11 @@ class Orchestrator:
                     # container_inbox is the path inboxer promoted to be mounted in the docker container
                     # container_info is the result from the database that specifies the container name to execute
                     agent = DockerAgent(
-                        registry_host=registry_host,
-                        username=registry_username,
-                        password=registry_password
+                        registry_host=self.registry_host,
+                        username=self.registry_username,
+                        password=self.registry_password
                     )
-                    image_name = "%s/%s" % (registry_host, container_info['container'])
+
+                    image_name = container_info['container']
                     agent.pull(image_name)
                     agent.start_container(host_inbox=container_inbox, image_name=image_name)

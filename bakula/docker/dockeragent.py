@@ -33,13 +33,16 @@ class DockerAgent(object):
 
         self._containers = {}
         self._name_dict = {}
+        self.registry_host = registry_host
         self._docker_client = docker.Client(base_url=docker_base_url,
                                             tls=tls_config)
+
         if registry_host and registry_protocol and username and password:
             registry_url = "%s://%s" % (registry_protocol, registry_host)
             self._docker_client.login(username,
                                       password,
                                       registry=registry_url)
+
 
         self._update_container_indexes()
 
@@ -47,8 +50,10 @@ class DockerAgent(object):
                     dockerfile='Dockerfile'):
         build_generator = self._docker_client.build(path=path, tag=image_name)
 
-    def pull(self, repository, tag=None):
-        return self._docker_client.pull(repository, tag=tag)
+    def pull(self, image_name, tag=None):
+        if self.registry_host:
+            image_name = "%s/%s" % (self.registry_host, image_name)
+        return self._docker_client.pull(image_name, tag=tag)
 
     def check_if_image_exists(self, image_name):
         for image in self._docker_client.images():
@@ -65,6 +70,11 @@ class DockerAgent(object):
                         ports=None,
                         run_privileged=False,
                         command=None):
+
+
+        if self.registry_host:
+            image_name = "%s/%s" % (self.registry_host, image_name)
+
         container_name = self._create_container_name(image_name)
 
         # Create inbox volume for container
