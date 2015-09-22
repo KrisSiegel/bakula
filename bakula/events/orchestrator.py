@@ -16,13 +16,8 @@
 #   under the License.
 from bakula.events.inboxer import Inboxer
 from bakula.docker.dockeragent import DockerAgent
-from bottle import Bottle
-from bakula.bottle import configuration
 from bakula.models import Registration, resolve_query
 import uuid
-
-app = Bottle()
-configuration.bootstrap_app_config(app)
 
 # This class handles the event handling of the inboxer and, when a threshold is hit,
 # it promotes the appropriate files as an inbox or a docker container then fires the
