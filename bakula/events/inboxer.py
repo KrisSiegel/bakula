@@ -110,6 +110,7 @@ class Inboxer:
     # by container id
     def promote_to_container_inbox(self, topic, containerids):
         promotees = self.get_inbox_list(topic)
+        container_inboxes = []
         if len(promotees) > 0:
 
             # Since we allow a single, string or an array of strings for the
@@ -131,6 +132,7 @@ class Inboxer:
                                                 fname)
                         destination = os.path.join(container_inbox_path, fname)
                         os.link(fullpath, destination)
+                        container_inboxes.append(destination)
                     except Exception as ex:
                         print "Generating hard links failed due to %s" % ex
                         return None
@@ -147,3 +149,5 @@ class Inboxer:
                         return None
                 else:
                     print "Failure creating hard link on %s" % fullpath
+
+            return container_inboxes

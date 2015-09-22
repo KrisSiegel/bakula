@@ -78,8 +78,8 @@ class DockerAgent(object):
                     dockerfile='Dockerfile'):
         build_generator = self._docker_client.build(path=path, tag=image_name)
 
-    def pull(self, repository, tag=None):
-        return self._docker_client.pull(repository, tag=tag)
+    def pull(self, image_name, tag=None):
+        return self._docker_client.pull(image_name, tag=tag)
 
     def check_if_image_exists(self, image_name):
         for image in self._docker_client.images():
