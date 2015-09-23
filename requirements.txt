@@ -8,3 +8,4 @@ itsdangerous
 py-bcrypt
 requests
 python-dateutil
+cherrypy

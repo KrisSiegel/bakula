@@ -15,7 +15,7 @@
 #   specific language governing permissions and limitations
 #   under the License.
 from peewee import (Proxy, Model, CharField, ForeignKeyField, IntegerField,
-                    BooleanField)
+                    BooleanField, DecimalField)
 from bakula.bottle import peeweeutils
 
 db = Proxy()
@@ -47,7 +47,7 @@ class Metric(BaseModel):
     container = CharField()
     timestamp = IntegerField()
     name = CharField()
-    value = IntegerField()
+    value = DecimalField()
 
 class Event(BaseModel):
     topic = CharField()
@@ -80,6 +80,7 @@ def initialize_models(config):
     User.create_table(True)
     Registration.create_table(True)
     Metric.create_table(True)
+    Event.create_table(True)
 
     # The first user in the DB will be the admin user. Ignore errors.
     from bakula.security import iam

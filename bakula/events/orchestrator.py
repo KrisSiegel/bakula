@@ -16,7 +16,7 @@
 #   under the License.
 from bakula.events.inboxer import Inboxer
 from bakula.docker.dockeragent import DockerAgent
-from bakula.models import Registration, Metric
+from bakula.models import Registration, Metric, Event
 from dateutil import parser
 import time
 import uuid
@@ -30,48 +30,66 @@ class Orchestrator:
          self.inboxer.on("received", self.__handle_inbox_received_event)
          self.docker_agent = docker_agent
          self.id_to_cpu = {}
+         self.id_to_metadata = {}
          if self.docker_agent is None:
              self.docker_agent = DockerAgent()
 
     # Clean up the id_to_cpu dict
-    def __clean_container(self, id):
-        if id in self.id_to_cpu:
-            del self.id_to_cpu[id]
+    def __clean_container(self, container_id):
+        if container_id in self.id_to_metadata:
+            meta = self.id_to_metadata[container_id]
+            Event.create(
+                topic=meta['topic'],
+                container=meta['container'],
+                timestamp=meta['timestamp'],
+                duration=(int(time.time() * 1000) - meta['timestamp'])
+            )
+            del self.id_to_metadata[container_id]
+        if container_id in self.id_to_cpu:
+            del self.id_to_cpu[container_id]
 
     # Save stat to database
     def __handle_stat(self, stat, id, topic, container_name):
-        read_dt = parser.parse(stat['read'])
-        timestamp = int((time.mktime(read_dt.timetuple()) + (read_dt.microsecond/1000000.0)) * 1000)
-        memory_usage = float(stat['memory_stats']['usage'])/float(stat['memory_stats']['limit'])
-        Metric.create(
-            topic=topic,
-            container=container_name,
-            timestamp=timestamp,
-            name='memory',
-            value=memory_usage
-        )
-
-        # Calculate CPU usage. The docker API returns the number of cycles consumed
-        # by the container and the number of cycles consumed by the system. We need
-        # to take the difference over time and divide them to retrieve the usage
-        # percentage.
-        total_usage = float(stat['cpu_stats']['cpu_usage']['total_usage'])
-        system_usage = float(stat['cpu_stats']['system_cpu_usage'])
-        if id in self.id_to_cpu:
-            usage_diff = total_usage - self.id_to_cpu[id]['total']
-            system_diff = system_usage - self.id_to_cpu[id]['system']
-            usage_pct = usage_diff/system_diff
+        try:
+            read_dt = parser.parse(stat['read'])
+            timestamp = int((time.mktime(read_dt.timetuple()) + (read_dt.microsecond/1000000.0)) * 1000)
+            memory_usage = float(stat['memory_stats']['usage'])/float(stat['memory_stats']['limit'])
             Metric.create(
                 topic=topic,
                 container=container_name,
                 timestamp=timestamp,
-                name='cpu',
-                value=usage_pct
+                name='memory',
+                value=memory_usage
             )
-        self.id_to_cpu[id] = {
-            'total': total_usage,
-            'system': system_usage
-        }
+
+            # Calculate CPU usage. The docker API returns the number of cycles consumed
+            # by the container and the number of cycles consumed by the system. We need
+            # to take the difference over time and divide them to retrieve the usage
+            # percentage.
+            total_usage = float(stat['cpu_stats']['cpu_usage']['total_usage'])
+            system_usage = float(stat['cpu_stats']['system_cpu_usage'])
+            if id in self.id_to_cpu:
+                usage_diff = total_usage - self.id_to_cpu[id]['total']
+                system_diff = system_usage - self.id_to_cpu[id]['system']
+                if usage_diff >= 0:
+                    usage_pct = usage_diff/system_diff
+                else:
+                    usage_pct = 0.0
+                Metric.create(
+                    topic=topic,
+                    container=container_name,
+                    timestamp=timestamp,
+                    name='cpu',
+                    value=usage_pct
+                )
+            self.id_to_cpu[id] = {
+                'total': total_usage,
+                'system': system_usage
+            }
+        except:
+            # We don't want to kill the stat thread, and we don't really mind
+            # if some statistics aren't saved properly
+            pass
 
     # Get listing of registered containers filtered by topic
     def __get_registered_containers(self, topic):
@@ -108,8 +126,14 @@ class Orchestrator:
                     container_id = self.docker_agent.start_container(
                         host_inbox=container_inbox,
                         image_name=image_name,
-                        on_terminate=self.__clean_container
+                        on_terminate=self.__clean_container,
+                        topic=data['topic']
                     )
+                    self.id_to_metadata[container_id] = {
+                        'topic': data['topic'],
+                        'container': image_name,
+                        'timestamp': int(time.time() * 1000)
+                    }
                     self.docker_agent.stats(
                         container_id,
                         data["topic"],

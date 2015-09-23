@@ -14,7 +14,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # Bump up memory
   config.vm.provider :virtualbox do |vb|
-    vb.customize ["modifyvm", :id, "--memory", "1024"]
+    vb.customize ["modifyvm", :id, "--memory", "2048"]
   end
   #
   # Install Base Packages
@@ -27,6 +27,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision "shell", inline: "curl -sSL https://get.docker.com/ | sh"
   config.vm.provision "shell", inline: "service docker start"
   config.vm.provision "shell", inline: "usermod -a -G docker vagrant"
+
+  # Clearing out the iptables rules so that the host machine can
+  # access the services on the VM
+  config.vm.provision "shell", inline: "iptables -F"
 
   # Install our application requireiments
   config.vm.provision "shell", inline: "pip install -r /vagrant/requirements.txt"

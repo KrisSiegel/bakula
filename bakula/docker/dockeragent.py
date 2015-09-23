@@ -16,15 +16,19 @@
 #   under the License.
 
 import docker
-import pprint
-import sys
 import time
 import threading
+from sets import Set
+import copy
 
 # The requests library seems to import the urllib library completely
 # into their codebase before distributing (not sure if it's a fork or
 # what), which is why this exceptions module is imported weirdly.
-from requests.packages.urllib3 import exceptions
+from requests.packages.urllib3.exceptions import ReadTimeoutError
+from requests.exceptions import ReadTimeout
+
+class ContainerStartException(Exception):
+    pass
 
 class DockerAgent(object):
     CONTAINER_INBOX = '/inbox'
@@ -36,11 +40,12 @@ class DockerAgent(object):
                  password=None,
                  registry_protocol='https',
                  tls_config=False,
-                 monitor_interval=5,
-                 docker_timeout=2):
-
-        self._monitor_interval = monitor_interval
-        self._name_dict = {}
+                 monitor_interval=2,
+                 docker_timeout=2,
+                 monitor_thread=True,
+                 start_retries=3):
+        self._start_retries = start_retries
+        self._containers_to_remove = Set()
         self._terminate_callbacks = {}
         self._docker_client = docker.Client(base_url=docker_base_url,
                                             tls=tls_config,
@@ -50,39 +55,68 @@ class DockerAgent(object):
             self._docker_client.login(username,
                                       password,
                                       registry=registry_url)
-        self._update_container_indexes()
-        self._monitor_thread = threading.Thread(target=self._monitor)
-        self._monitor_thread.daemon = True
-        self._monitor_thread.start()
+
+        self._monitor_thread = None
+        if monitor_thread:
+            self._monitor_interval = monitor_interval
+            self._monitor_thread = threading.Thread(target=self._monitor)
+            self._monitor_thread.daemon = True
+            self._monitor_thread.start()
+
+            self._removal_thread = threading.Thread(target=self._remove)
+            self._removal_thread.daemon = True
+            self._removal_thread.start()
+
+    def _remove(self):
+        while True:
+            time.sleep(self._monitor_interval)
+            to_clear = []
+
+            # Make a deep copy of the containers_to_remove so that we can
+            # iterate over the containers without blocking the monitor thread
+            removing = copy.deepcopy(self._containers_to_remove)
+            for container_id in removing:
+                try:
+                    self._docker_client.remove_container(container_id)
+                    to_clear.append(container_id)
+                except:
+                    # If there's a timeout just bail out of the loop
+                    # and we'll remove the containers on the next run
+                    break
+            for container_id in to_clear:
+                self._containers_to_remove.remove(container_id)
 
     def _monitor(self):
         while True:
             time.sleep(self._monitor_interval)
-            exited = self._docker_client.containers(
-                filters={'status': 'exited'}
-            )
-            update_indices = False
-            for container in exited:
-                image = container['Image']
-                name = container['Names'][0]
-                id = container['Id']
-                if name.startswith('/'):
-                    name = name[1:]
-                if (image in self._name_dict and
-                        name in self._name_dict[image]):
+            try:
+                exited = self._docker_client.containers(
+                    filters={'status': 'exited'}
+                )
+                update_indices = False
+                containers_to_remove = []
+                for container in exited:
+                    image = container['Image']
+                    name = container['Names'][0]
+                    container_id = container['Id']
+                    if name.startswith('/'):
+                        name = name[1:]
                     update_indices = True
-                    if id in self._terminate_callbacks:
-                        self._terminate_callbacks[id](id)
-                        del self._terminate_callbacks[id]
-                    self._docker_client.remove_container(id)
-            if update_indices:
-                self._update_container_indexes()
+                    if container_id in self._terminate_callbacks:
+                        self._terminate_callbacks[container_id](container_id)
+                        del self._terminate_callbacks[container_id]
+                    self._containers_to_remove.add(container_id)
+            except:
+                # Not too worried about if there is an exception, just want
+                # to make sure this thread stays alive
+                pass
 
     def build_image(self, path, image_name,
                     dockerfile='Dockerfile'):
         build_generator = self._docker_client.build(path=path, tag=image_name)
 
     def pull(self, image_name, tag=None):
+        tag = tag or 'latest'
         return self._docker_client.pull(image_name, tag=tag)
 
     def check_if_image_exists(self, image_name):
@@ -103,7 +137,7 @@ class DockerAgent(object):
         try:
             for stat in stat_generator:
                 stat_processor(stat, container_id, topic, container_name)
-        except exceptions.ReadTimeoutError:
+        except ReadTimeoutError:
             # When the container is terminated, the connection stays open
             # briefly before timing out. Nothing to do here.
             pass
@@ -127,9 +161,8 @@ class DockerAgent(object):
                         ports=None,
                         run_privileged=False,
                         command=None,
-                        on_terminate=None):
-        container_name = self._create_container_name(image_name)
-
+                        on_terminate=None,
+                        topic=None):
         # Create inbox volume for container
         container_volumes_str = '%s:%s:rw' % (host_inbox,
                                               DockerAgent.CONTAINER_INBOX)
@@ -139,77 +172,49 @@ class DockerAgent(object):
             binds=[container_volumes_str],
             port_bindings=ports
         )
-        container = self._docker_client.create_container(
-            image=image_name,
-            name=container_name,
-            host_config=host_config_obj,
-            volumes=[DockerAgent.CONTAINER_INBOX],
-            command=command
-        )
+        tries = 0
+        created = False
+        container = None
+        while tries < self._start_retries:
+            try:
+                container = self._docker_client.create_container(
+                    image=image_name,
+                    host_config=host_config_obj,
+                    volumes=[DockerAgent.CONTAINER_INBOX],
+                    command=command,
+                    labels={
+                        'topic': topic
+                    }
+                )
+                created = True
+                break
+            except ReadTimeout:
+                tries += 1
+        if not created:
+            raise ContainerStartException('Could not create container')
         container_id = container['Id']
-        res = self._docker_client.start(container['Id'])
-        if on_terminate is not None:
-            self._terminate_callbacks[container_id] = on_terminate
-        # Make sure our dictionary is fresh
-        self._update_container_indexes()
-        return container_id
+        tries = 0
+        while tries < self._start_retries:
+            try:
+                res = self._docker_client.start(container['Id'])
+                if on_terminate is not None:
+                    self._terminate_callbacks[container_id] = on_terminate
+                return container_id
+            except ReadTimeout:
+                tries += 1
 
-    def stop_all_containers_of_image(self, image_name):
-        for container_name in self._name_dict[image_name]:
-            self.stop_container(container_name, False)
-        self._update_container_indexes()
+        # We weren't able to start the container, remove it and throw an
+        # error
+        self._containers_to_remove.add(container_id)
+        raise ContainerStartException('Could not start container "%s%' % container_id)
 
-    def get_port_info_for_container(self, container_id, port):
-        return self._docker_client.port(container_id, port)
-
-    def _update_container_indexes(self):
-        self._name_dict = {}
-        for container in self._docker_client.containers():
-            image_name = container['Image']
-            index = image_name.rfind(':')
-            if index == -1:
-                index = len(image_name)
-            image_name = image_name[0:index]
-            # We only believe in one name per container here folks
-            name = container['Names'][0]
-            # Remove the first /
-            name = name[1:]
-            self._add_name_to_name_dict(image_name, name)
-
-    def _create_container_name(self, image_name):
-        nin = self._normalize_image_name(image_name)
-        # New image being inserted
-        if image_name not in self._name_dict:
-            container_name = '%s_%d' % (nin, 0)
-            return container_name
-
-        # Get our candidates
-        instance_numbers = []
-        for name in self._name_dict[image_name]:
-            # Get our instance number
-            instance_numbers.append(int(name[name.rindex('_') + 1:]))
-
-        container_name = ''
-        if len(instance_numbers) < 2:
-            container_name = '%s_%d' % (nin, 1)
-        else:
-            prev_instance = 0
-            instance_numbers.sort()
-            for instance in instance_numbers:
-                if instance - prev_instance > 1:
-                    break
-                prev_instance = instance
-            container_name = '%s_%d' % (nin, prev_instance + 1)
-
-        return container_name
-
-    def _normalize_image_name(self, image_name):
-        for char in DockerAgent.NAME_CHARS_TO_REPLACE:
-            image_name = image_name.replace(char, '_')
-        return image_name
-
-    def _add_name_to_name_dict(self, image_name, name):
-        if image_name not in self._name_dict:
-            self._name_dict[image_name] = [name]
-        else:
-            self._name_dict[image_name].append(name)
+    def container_count(self, topic, image_name):
+        containers = self._docker_client.containers(filters={
+            'label': 'topic=%s' % topic,
+        })
+        count = 0
+        for container in containers:
+            container_image = container['Image']
+            if container_image.startswith(image_name):
+                count += 1
+        return count

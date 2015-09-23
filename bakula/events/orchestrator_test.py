@@ -23,11 +23,14 @@ import tempfile
 from inboxer import Inboxer
 from bakula import models
 from bakula.models import Registration
+from bakula.docker import dockeragent
 from orchestrator import Orchestrator
+import time
 
+DOCKER_TIMEOUT = 10
 class OrchestratorTest(unittest.TestCase):
-
     TEST_DIR = os.path.join(tempfile.gettempdir(), 'orchestrator_test')
+    AGENT = dockeragent.DockerAgent(docker_timeout=DOCKER_TIMEOUT)
 
     @classmethod
     def setUpClass(self):
@@ -44,14 +47,17 @@ class OrchestratorTest(unittest.TestCase):
         reg.save()
 
     def tearDown(self):
-        shutil.rmtree(self.TEST_DIR, ignore_errors=True)
+        shutil.rmtree(OrchestratorTest.TEST_DIR, ignore_errors=True)
+        # Wait for containers to be cleaned up by monitor thread
+        time.sleep(DOCKER_TIMEOUT)
 
     def test_Orchestrator(self):
-        inboxer = Inboxer(os.path.join(self.TEST_DIR, "master_inbox"),
-                          os.path.join(self.TEST_DIR, "container_inboxes"))
-        orchestrator = Orchestrator(inboxer)
+        inboxer = Inboxer(os.path.join(OrchestratorTest.TEST_DIR, "master_inbox"),
+                          os.path.join(OrchestratorTest.TEST_DIR, "container_inboxes"))
+        orchestrator = Orchestrator(inboxer, OrchestratorTest.AGENT)
         inboxer.add_file_by_bytes("MyTopic", "This is some data")
         self.assertEqual(len(inboxer.get_inbox_list("MyTopic")), 0)
+
 
 if __name__ == '__main__':
     unittest.main()
