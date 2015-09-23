@@ -55,11 +55,20 @@ class Orchestrator:
     # that has passed its timer
     def __process_pending(self):
         while (True):
+            for_process = []
             for topic in self.pending:
                 for container in self.pending[topic]:
                     if self.__get_current_time_in_seconds() > self.pending[topic][container]:
-                        # It's go time!
-                        self.__process(topic, container)
+                        # It's go time! Pop into array so we can run after the loop
+                        # Otherwise modiying the dictionary during runtime is bad (item is
+                        # removed from pending immediately upon start of processing)
+                        for_process.append({ "topic": topic, "container": container })
+
+            # Iterate the array and run the things inside
+            for process in for_process:
+                self.__process(process["topic"], process["container"])
+                
+            del for_process[:]
             try:
                 sleep(TIMER_INTERVAL)
             except KeyboardInterrupt:
