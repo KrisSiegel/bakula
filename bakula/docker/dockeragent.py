@@ -59,15 +59,15 @@ class DockerAgent(object):
         self._monitor_thread = None
         if monitor_thread:
             self._monitor_interval = monitor_interval
-            self._monitor_thread = threading.Thread(target=self._monitor)
+            self._monitor_thread = threading.Thread(target=self.__monitor)
             self._monitor_thread.daemon = True
             self._monitor_thread.start()
 
-            self._removal_thread = threading.Thread(target=self._remove)
+            self._removal_thread = threading.Thread(target=self.__remove)
             self._removal_thread.daemon = True
             self._removal_thread.start()
 
-    def _remove(self):
+    def __remove(self):
         while True:
             time.sleep(self._monitor_interval)
             to_clear = []
@@ -86,7 +86,7 @@ class DockerAgent(object):
             for container_id in to_clear:
                 self._containers_to_remove.remove(container_id)
 
-    def _monitor(self):
+    def __monitor(self):
         while True:
             time.sleep(self._monitor_interval)
             try:
@@ -127,7 +127,7 @@ class DockerAgent(object):
                 return True
         return False
 
-    def _process_stats(self,
+    def __process_stats(self,
                        container_id,
                        topic,
                        container_name,
@@ -148,7 +148,7 @@ class DockerAgent(object):
               stat_processor):
         stats = self._docker_client.stats(container_id, decode=True)
         thread = threading.Thread(
-            target=self._process_stats,
+            target=self.__process_stats,
             args=(container_id, topic, container_name, stats, stat_processor)
         )
         thread.daemon = True
