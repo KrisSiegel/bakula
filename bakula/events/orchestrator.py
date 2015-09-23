@@ -30,19 +30,19 @@ TIMER_INTERVAL = 10.0
 # docker container.
 class Orchestrator(object):
     def __init__(self, inboxer=Inboxer(), docker_agent=None):
-         self.inboxer = inboxer
-         self.inboxer.on("received", self.__handle_inbox_received_event)
-         self.docker_agent = docker_agent
-         self.id_to_cpu = {}
-         self.id_to_metadata = {}
-         if self.docker_agent is None:
-             self.docker_agent = DockerAgent()
+        self.inboxer = inboxer
+        self.inboxer.on("received", self.__handle_inbox_received_event)
+        self.docker_agent = docker_agent
+        self.id_to_cpu = {}
+        self.id_to_metadata = {}
+        if self.docker_agent is None:
+            self.docker_agent = DockerAgent()
 
-         # Setup pending queue
-         self.pending = { }
-         self.pending_thread = Thread(target=self.__process_pending)
-         self.pending_thread.daemon = True
-         self.pending_thread.start()
+        # Setup pending queue
+        self.pending = { }
+        self.pending_thread = Thread(target=self.__process_pending)
+        self.pending_thread.daemon = True
+        self.pending_thread.start()
 
     # Clean up the id_to_cpu dict
     def __clean_container(self, container_id):
