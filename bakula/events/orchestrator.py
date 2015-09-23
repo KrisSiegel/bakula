@@ -27,7 +27,7 @@ TIMER_INTERVAL = 10.0
 # This class handles the event handling of the inboxer and, when a threshold is hit,
 # it promotes the appropriate files as an inbox or a docker container then fires the
 # docker container.
-class Orchestrator:
+class Orchestrator(object):
     def __init__(self, inboxer=Inboxer(), docker_agent=None):
         self.inboxer = inboxer
         self.inboxer.on("received", self.__handle_inbox_received_event)
@@ -67,7 +67,7 @@ class Orchestrator:
             # Iterate the array and run the things inside
             for process in for_process:
                 self.__process(process["topic"], process["container"])
-                
+
             del for_process[:]
             try:
                 sleep(TIMER_INTERVAL)

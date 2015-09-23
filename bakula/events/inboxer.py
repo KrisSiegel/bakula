@@ -21,7 +21,7 @@ from atomiclong import AtomicLong
 # class Inboxer provides basic capabilities to put a file in the master inbox,
 # create a hardlink to that file in the correct container inboxes path and then
 # delete the original file in the master inbox.
-class Inboxer:
+class Inboxer(object):
     # Initialize class with default paths to the master inbox and container
     # inboxes
     def __init__(self,
