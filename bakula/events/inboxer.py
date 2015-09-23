@@ -32,7 +32,7 @@ class Inboxer(object):
         self.container_inboxes_path = container_inboxes_path
         self.atomic_counter = atomic_counter
         self.event_subscriptions = {} # Keep callbacks for events subscribed to
-        self.countCache = {} # Keep a cache of file counts; faster than recounting
+        self.count_cache = {} # Keep a cache of file counts; faster than recounting
 
         if not os.path.exists(self.master_inbox_path):
             os.makedirs(self.master_inbox_path)
@@ -58,16 +58,16 @@ class Inboxer(object):
 
     # Get a count from the cache count
     def __get_count_cache(self, topic):
-        if topic not in self.countCache:
-            self.countCache[topic] = __get_file_count(topic)
-        return self.countCache[topic]
+        if topic not in self.count_cache:
+            self.count_cache[topic] = __get_file_count(topic)
+        return self.count_cache[topic]
 
     # Update the count cache
     def __update_count_cache(self, topic, count=None):
         if count is None:
-            self.countCache[topic] = self.__get_file_count(topic)
+            self.count_cache[topic] = self.__get_file_count(topic)
         else:
-            self.countCache[topic] = count
+            self.count_cache[topic] = count
 
     # Registers a callback for a specific event
     # Don't care to support multiple registrations per event. Right now at
