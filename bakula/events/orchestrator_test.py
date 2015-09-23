@@ -31,7 +31,6 @@ import time
 DOCKER_TIMEOUT = 10
 class OrchestratorTest(unittest.TestCase):
     TEST_DIR = os.path.join(tempfile.gettempdir(), 'orchestrator_test')
-    AGENT = dockeragent.DockerAgent(docker_timeout=DOCKER_TIMEOUT)
 
     @classmethod
     def setUpClass(self):
