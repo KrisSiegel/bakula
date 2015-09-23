@@ -19,6 +19,7 @@ import unittest
 import os
 import shutil
 import tempfile
+from time import sleep
 
 from inboxer import Inboxer
 from bakula import models
@@ -36,22 +37,43 @@ class OrchestratorTest(unittest.TestCase):
 
     def setUp(self):
         models.Registration.delete().execute()
-        reg = Registration(**{
-            "topic": "MyTopic",
-            "container": "busybox",
-            "creator": "me"
-        })
-        reg.save()
 
     def tearDown(self):
         shutil.rmtree(self.TEST_DIR, ignore_errors=True)
+        models.Registration.delete().execute()
 
-    def test_Orchestrator(self):
+    def test_Orchestrator_with_threshold(self):
+        reg = Registration(**{
+            "topic": "MyTopic1",
+            "container": "busybox",
+            "creator": "me",
+            "threshold": 1,
+            "timeout": 15
+        })
+        reg.save()
+
         inboxer = Inboxer(os.path.join(self.TEST_DIR, "master_inbox"),
                           os.path.join(self.TEST_DIR, "container_inboxes"))
         orchestrator = Orchestrator(inboxer)
-        inboxer.add_file_by_bytes("MyTopic", "This is some data")
-        self.assertEqual(len(inboxer.get_inbox_list("MyTopic")), 0)
+        inboxer.add_file_by_bytes("MyTopic1", "This is some data")
+        self.assertEqual(len(inboxer.get_inbox_list("MyTopic1")), 0)
+
+    def test_Orchestrator_with_timeout(self):
+        reg = Registration(**{
+            "topic": "MyTopic2",
+            "container": "busybox",
+            "creator": "me",
+            "threshold": 100,
+            "timeout": 5
+        })
+        reg.save()
+
+        inboxer = Inboxer(os.path.join(self.TEST_DIR, "master_inbox"),
+                          os.path.join(self.TEST_DIR, "container_inboxes"))
+        orchestrator = Orchestrator(inboxer)
+        inboxer.add_file_by_bytes("MyTopic2", "This is some data")
+        sleep(20)
+        self.assertEqual(len(inboxer.get_inbox_list("MyTopic2")), 0)
 
 if __name__ == '__main__':
     unittest.main()
