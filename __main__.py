@@ -22,7 +22,7 @@ from bakula.services import (healthcheck,
                              registration,
                              event,
                              user,
-                             docker,
+                             images,
                              metrics)
 from bakula.models import initialize_models
 from bakula.bottle import configuration
@@ -36,7 +36,7 @@ sub_apps = [
     registration.app,
     user.app,
     event.app,
-    docker.app,
+    images.app,
     metrics.app
 ]
 

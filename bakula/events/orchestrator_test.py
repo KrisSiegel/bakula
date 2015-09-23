@@ -48,8 +48,6 @@ class OrchestratorTest(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(OrchestratorTest.TEST_DIR, ignore_errors=True)
-        # Wait for containers to be cleaned up by monitor thread
-        time.sleep(DOCKER_TIMEOUT)
 
     def test_Orchestrator(self):
         inboxer = Inboxer(os.path.join(OrchestratorTest.TEST_DIR, "master_inbox"),
@@ -57,6 +55,8 @@ class OrchestratorTest(unittest.TestCase):
         orchestrator = Orchestrator(inboxer, OrchestratorTest.AGENT)
         inboxer.add_file_by_bytes("MyTopic", "This is some data")
         self.assertEqual(len(inboxer.get_inbox_list("MyTopic")), 0)
+        # Wait for containers to be cleaned up by monitor thread
+        time.sleep(DOCKER_TIMEOUT)
 
 
 if __name__ == '__main__':
