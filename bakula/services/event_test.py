@@ -15,10 +15,24 @@ import shutil
 import os
 from bakula.services import event
 from webtest import TestApp
+from bakula import models
+from bakula.security import tokenutils, iam
 
 test_app = TestApp(event.app)
 
 class EventTest(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        models.initialize_models({'database.name': ':memory:',
+                                  'database.type': 'sqlite'})
+        iam.create('user', 'some_password')
+        EventTest.auth_header = {
+            'Authorization': tokenutils.generate_auth_token(
+                'password',
+                'user',
+                120)
+        }
 
     def tearDown(self):
         shutil.rmtree(".tmp", ignore_errors=True)
@@ -32,7 +46,7 @@ class EventTest(unittest.TestCase):
 
         response = test_app.post("/event", {
             "topic": "MyTopic"
-        }, upload_files=[("data[]", testfile)], expect_errors=False)
+        }, upload_files=[("data[]", testfile)], expect_errors=False, headers=EventTest.auth_header)
 
         self.assertEqual(response.status_int, 201)
 

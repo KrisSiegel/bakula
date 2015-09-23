@@ -11,6 +11,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # Expose 5000 to our host
   config.vm.network :forwarded_port, guest: 5000, host: 5000
+
+  # Bump up memory
+  config.vm.provider :virtualbox do |vb|
+    vb.customize ["modifyvm", :id, "--memory", "2048"]
+  end
   #
   # Install Base Packages
   config.vm.provision "shell", inline: "yum -y update"
@@ -18,15 +23,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision "shell", inline: "rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7"
   config.vm.provision "shell", inline: "yum -y install python-pip python-devel libffi-devel"
 
-  # Get Docker
-  # Setup the docker repo file, this is a cheap hack since the 'ssh' user is vagrant which doesn't have
-  # rights to write to /etc/yum.repos.d/docker.repo but the shell provision commands are run as root
-  # so they can
-  config.vm.provision "file",  source: "./docker_centos_7.repo", destination: "/tmp/docker.repo"
-  config.vm.provision "shell", inline: "mv /tmp/docker.repo /etc/yum.repos.d/docker.repo"
-  config.vm.provision "shell", inline: "yum -y install docker-engine"
+  # Get and start Docker
+  config.vm.provision "shell", inline: "curl -sSL https://get.docker.com/ | sh"
   config.vm.provision "shell", inline: "service docker start"
   config.vm.provision "shell", inline: "usermod -a -G docker vagrant"
+
+  # Clearing out the iptables rules so that the host machine can
+  # access the services on the VM
+  config.vm.provision "shell", inline: "iptables -F"
 
   # Install our application requireiments
   config.vm.provision "shell", inline: "pip install -r /vagrant/requirements.txt"

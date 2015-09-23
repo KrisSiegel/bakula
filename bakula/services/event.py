@@ -15,19 +15,28 @@ from bottle import Bottle, HTTPResponse, request, response, FileUpload
 from bakula.bottle import configuration
 from bakula.bottle.errorutils import create_error
 from bakula.docker.dockeragent import DockerAgent
-from bakula.events.inboxer import Inboxer
+from bakula.events.inboxer import Inboxer, DEFAULT_CONTAINER_INBOXES, DEFAULT_MASTER_INBOX
 from bakula.events.orchestrator import Orchestrator
 from atomiclong import AtomicLong
+from bakula.security.tokenauthplugin import TokenAuthorizationPlugin
 
 app = Bottle()
 
 configuration.bootstrap_app_config(app)
 
+# Setup authorization plugin
+token_secret = app.config.get('token_secret', 'password')
+auth_plugin = TokenAuthorizationPlugin(token_secret)
+app.install(auth_plugin)
+
 count = AtomicLong(0)
-inbox = Inboxer(atomic_counter=count)
+inbox = Inboxer(atomic_counter=count,
+    master_inbox_path=app.config.get('inbox.master', DEFAULT_MASTER_INBOX),
+    container_inboxes_path=app.config.get('inbox.containers', DEFAULT_CONTAINER_INBOXES))
 docker_agent = DockerAgent(registry_host=app.config.get("registry.host", None),
-   username=app.config.get("registry.username", None),
-   password=app.config.get("registry.password", None))
+    username=app.config.get("registry.username", None),
+    password=app.config.get("registry.password", None),
+    docker_timeout=app.config.get("docker.timeout", 2))
 
 orchestrator = Orchestrator(inboxer=inbox,docker_agent=docker_agent)
 

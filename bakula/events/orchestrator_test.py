@@ -24,10 +24,12 @@ from time import sleep
 from inboxer import Inboxer
 from bakula import models
 from bakula.models import Registration
+from bakula.docker import dockeragent
 from orchestrator import Orchestrator
+import time
 
+DOCKER_TIMEOUT = 10
 class OrchestratorTest(unittest.TestCase):
-
     TEST_DIR = os.path.join(tempfile.gettempdir(), 'orchestrator_test')
 
     @classmethod
@@ -36,21 +38,22 @@ class OrchestratorTest(unittest.TestCase):
                                   'database.type': 'sqlite'})
 
     def setUp(self):
-        models.Registration.delete().execute()
+        Registration.delete().execute()
 
     def tearDown(self):
         shutil.rmtree(self.TEST_DIR, ignore_errors=True)
         models.Registration.delete().execute()
+        # allow the cleanup thread to remove old containers
+        time.sleep(10)
 
     def test_Orchestrator_with_threshold(self):
-        reg = Registration(**{
-            "topic": "MyTopic1",
-            "container": "busybox",
-            "creator": "me",
-            "threshold": 1,
-            "timeout": 15
-        })
-        reg.save()
+        Registration.create(
+            topic="MyTopic1",
+            container="busybox",
+            creator="me",
+            threshold=1,
+            timeout=15
+        )
 
         inboxer = Inboxer(os.path.join(self.TEST_DIR, "master_inbox"),
                           os.path.join(self.TEST_DIR, "container_inboxes"))
@@ -59,14 +62,13 @@ class OrchestratorTest(unittest.TestCase):
         self.assertEqual(len(inboxer.get_inbox_list("MyTopic1")), 0)
 
     def test_Orchestrator_with_timeout(self):
-        reg = Registration(**{
-            "topic": "MyTopic2",
-            "container": "busybox",
-            "creator": "me",
-            "threshold": 100,
-            "timeout": 5
-        })
-        reg.save()
+        Registration.create(
+            topic="MyTopic2",
+            container="busybox",
+            creator="me",
+            threshold=100,
+            timeout=5
+        )
 
         inboxer = Inboxer(os.path.join(self.TEST_DIR, "master_inbox"),
                           os.path.join(self.TEST_DIR, "container_inboxes"))

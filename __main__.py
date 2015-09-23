@@ -18,7 +18,12 @@ import argparse
 import sys
 
 from bottle import Bottle, run
-from bakula.services import healthcheck, registration, event, user, docker
+from bakula.services import (healthcheck,
+                             registration,
+                             event,
+                             user,
+                             images,
+                             metrics)
 from bakula.models import initialize_models
 from bakula.bottle import configuration
 
@@ -31,7 +36,8 @@ sub_apps = [
     registration.app,
     user.app,
     event.app,
-    docker.app
+    images.app,
+    metrics.app
 ]
 
 if __name__ == '__main__':
@@ -48,4 +54,4 @@ if __name__ == '__main__':
 
     configuration.bootstrap_app_config(app)
     initialize_models(app.config)
-    run(app, host=args.host, port=args.port)
+    run(app, host=args.host, port=args.port, server='cherrypy')

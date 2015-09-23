@@ -16,10 +16,11 @@
 #   under the License.
 from bakula.events.inboxer import Inboxer
 from bakula.docker.dockeragent import DockerAgent
+from bakula.models import Registration, Metric, Event, resolve_query
+from dateutil import parser
 from threading import Thread
-from bakula.models import Registration, resolve_query
 from calendar import timegm
-from time import gmtime, sleep
+from time import gmtime, sleep, time
 from uuid import uuid4
 
 TIMER_INTERVAL = 10.0
@@ -32,6 +33,8 @@ class Orchestrator(object):
         self.inboxer = inboxer
         self.inboxer.on("received", self.__handle_inbox_received_event)
         self.docker_agent = docker_agent
+        self.id_to_cpu = {}
+        self.id_to_metadata = {}
         if self.docker_agent is None:
             self.docker_agent = DockerAgent()
 
@@ -40,6 +43,63 @@ class Orchestrator(object):
         self.pending_thread = Thread(target=self.__process_pending)
         self.pending_thread.daemon = True
         self.pending_thread.start()
+
+    # Clean up the id_to_cpu dict
+    def __clean_container(self, container_id):
+        if container_id in self.id_to_metadata:
+            meta = self.id_to_metadata[container_id]
+            Event.create(
+                topic=meta['topic'],
+                container=meta['container'],
+                timestamp=meta['timestamp'],
+                duration=(int(time() * 1000) - meta['timestamp'])
+            )
+            del self.id_to_metadata[container_id]
+        if container_id in self.id_to_cpu:
+            del self.id_to_cpu[container_id]
+
+    # Save stat to database
+    def __handle_stat(self, stat, id, topic, container_name):
+        try:
+            read_dt = parser.parse(stat['read'])
+            timestamp = int((time.mktime(read_dt.timetuple()) + (read_dt.microsecond/1000000.0)) * 1000)
+            memory_usage = float(stat['memory_stats']['usage'])/float(stat['memory_stats']['limit'])
+            Metric.create(
+                topic=topic,
+                container=container_name,
+                timestamp=timestamp,
+                name='memory',
+                value=memory_usage
+            )
+
+            # Calculate CPU usage. The docker API returns the number of cycles consumed
+            # by the container and the number of cycles consumed by the system. We need
+            # to take the difference over time and divide them to retrieve the usage
+            # percentage.
+            total_usage = float(stat['cpu_stats']['cpu_usage']['total_usage'])
+            system_usage = float(stat['cpu_stats']['system_cpu_usage'])
+            if id in self.id_to_cpu:
+                usage_diff = total_usage - self.id_to_cpu[id]['total']
+                system_diff = system_usage - self.id_to_cpu[id]['system']
+                if usage_diff >= 0:
+                    usage_pct = usage_diff/system_diff
+                else:
+                    usage_pct = 0.0
+                Metric.create(
+                    topic=topic,
+                    container=container_name,
+                    timestamp=timestamp,
+                    name='cpu',
+                    value=usage_pct
+                )
+            self.id_to_cpu[id] = {
+                'total': total_usage,
+                'system': system_usage
+            }
+        except:
+            # We don't want to kill the stat thread, and we don't really mind
+            # if some statistics aren't saved properly
+            pass
 
     # Get listing of registered containers filtered by topic
     def __get_registered_containers(self, topic):
@@ -88,7 +148,23 @@ class Orchestrator(object):
         for container_inbox in container_inboxes:
             # container_inbox is the path inboxer promoted to be mounted in the docker container
             self.docker_agent.pull(container_name)
-            self.docker_agent.start_container(host_inbox=container_inbox, image_name=container_name)
+            container_id = self.docker_agent.start_container(
+                host_inbox=container_inbox,
+                image_name=container_name,
+                on_terminate=self.__clean_container,
+                topic=topic
+            )
+            self.id_to_metadata[container_id] = {
+                'topic': topic,
+                'container': container_name,
+                'timestamp': int(time() * 1000)
+            }
+            self.docker_agent.stats(
+                container_id,
+                topic,
+                container_name,
+                self.__handle_stat
+            )
 
     # Get the current time, in seconds, since epoch
     def __get_current_time_in_seconds(self):

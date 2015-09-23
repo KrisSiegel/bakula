@@ -15,7 +15,7 @@
 #   specific language governing permissions and limitations
 #   under the License.
 from peewee import (Proxy, Model, CharField, ForeignKeyField, IntegerField,
-                    BooleanField)
+                    BooleanField, DecimalField)
 from bakula.bottle import peeweeutils
 
 db = Proxy()
@@ -42,6 +42,19 @@ class Registration(BaseModel):
             (('topic', 'container'), True),
         )
 
+class Metric(BaseModel):
+    topic = CharField()
+    container = CharField()
+    timestamp = IntegerField()
+    name = CharField()
+    value = DecimalField()
+
+class Event(BaseModel):
+    topic = CharField()
+    container = CharField()
+    timestamp = IntegerField()
+    duration = IntegerField()
+
 # Helper method for resolving a SelectQuery into the underlying dict objects.
 # Useful for building response objects.
 #
@@ -66,6 +79,8 @@ def initialize_models(config):
     # already exist)
     User.create_table(True)
     Registration.create_table(True)
+    Metric.create_table(True)
+    Event.create_table(True)
 
     # The first user in the DB will be the admin user. Ignore errors.
     from bakula.security import iam
