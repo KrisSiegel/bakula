@@ -69,7 +69,10 @@ class DockerAgent(object):
 
     def __remove(self):
         while True:
-            time.sleep(self._monitor_interval)
+            try:
+                time.sleep(self._monitor_interval)
+            except KeyboardInterrupt:
+                self._removal_thread.stop()
             to_clear = []
 
             # Make a deep copy of the containers_to_remove so that we can
@@ -88,7 +91,10 @@ class DockerAgent(object):
 
     def __monitor(self):
         while True:
-            time.sleep(self._monitor_interval)
+            try:
+                time.sleep(self._monitor_interval)
+            except KeyboardInterrupt:
+                self._monitor_thread.stop()
             try:
                 exited = self._docker_client.containers(
                     filters={'status': 'exited'}
