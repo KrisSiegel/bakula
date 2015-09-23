@@ -46,13 +46,12 @@ class Inboxer(object):
                 self.event_subscriptions[event] is not None):
             self.event_subscriptions[event](data)
 
+    # Looks at the file system and gathers the current count by specified topic
     def __get_file_count(self, topic):
         master_topic_path = os.path.join(self.master_inbox_path, topic)
         count = 0
         if os.path.exists(master_topic_path):
-            for dirname, subdirs, files in os.walk(master_topic_path):
-                for fname in files:
-                    count = count + 1
+            count = len([fname for fname in os.listdir(master_topic_path) if os.path.isfile(os.path.join(master_topic_path, fname))])
 
         return count
 
