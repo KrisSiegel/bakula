@@ -158,6 +158,7 @@ class Inboxer(object):
                     self.container_inboxes_path, containerid)
                 if not os.path.exists(container_inbox_path):
                     os.makedirs(container_inbox_path)
+                container_inboxes.append(container_inbox_path)
 
                 for fname in promotees:
                     try:
@@ -166,7 +167,6 @@ class Inboxer(object):
                                                 fname)
                         destination = os.path.join(container_inbox_path, fname)
                         os.link(fullpath, destination)
-                        container_inboxes.append(destination)
                     except Exception as ex:
                         print "Generating hard links failed due to %s" % ex
                         return None
