@@ -1,6 +1,6 @@
 ## Bakula
 
-Bakula is a reactive programming framework which allows developers to quickly and
+Bakula is a reactive programming platform which allows developers to quickly and
 easily build event-driven applications with no strict API to implement. Bakula
 events are propagated via registratered 'topics' to user-provided Docker
 containers for processing.
@@ -13,8 +13,9 @@ pull Docker images and spin up containers for processing events.
 An 'event' in Bakula is any data provided to the service via POSTing to the
 ```/event``` endpoint. Bakula can process a single event, or multiple events,
 in one call to the API. The call to the API must be a ```multipart/form-data```
-request, with a payload containing a 'topic' field as well as additional
-fields denoting the event objects.
+request, with a payload containing a 'topic' field along with one or more
+fields containing files. Each file uploaded to the ```/event``` endpoint is
+an individual event object passed to all registered containers.
 
 An event object can be absolutely anything. These event objects are passed directly
 to the containers for processing. Two common patterns for events are:
