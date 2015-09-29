@@ -42,7 +42,7 @@ stream of twitter data may be sent to the 'Twitter' topic.
 when events occur for this topic.
 * Threshold (optional): The number of events which must occur before a container is
 started. For example, a threshold of 1000 would denote that 1000 events must occur before
-a container is created for this registration.
+a container is started for this registration.
 * Timeout (required with threshold): If events begin to occur, but the threshold is
 not met, a countdown will start and a container will be spun up at the end of that
 timeout. This prevents data from sitting in Bakula unprocessed. Timeouts are in seconds.
