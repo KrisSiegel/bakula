@@ -19,7 +19,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #
   # Install Base Packages
   config.vm.provision "shell", inline: "yum -y update"
-  config.vm.provision "shell", inline: "yum -y install http://mirror.cs.pitt.edu/epel/7/x86_64/e/epel-release-7-5.noarch.rpm"
+  config.vm.provision "shell", inline: "yum -y install http://download.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm"
   config.vm.provision "shell", inline: "rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7"
   config.vm.provision "shell", inline: "yum -y install python-pip python-devel libffi-devel"
 
